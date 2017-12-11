@@ -44,7 +44,9 @@ class SBQueueCURDScenarioTest(ScenarioTest):
             'primary': 'PrimaryKey',
             'secondary': 'SecondaryKey',
             'queuename': self.create_random_name(prefix='sb-queuecli', length=25),
-            'queueauthoname': self.create_random_name(prefix='cliQueueAutho', length=25)
+            'queueauthoname': self.create_random_name(prefix='cliQueueAutho', length=25),
+            'lock_duration': 'PT10M'
+
         })
 
         # Create Namespace
@@ -60,12 +62,12 @@ class SBQueueCURDScenarioTest(ScenarioTest):
 
         # Create Queue
         createqueueresult = self.cmd(
-            'servicebus queue create --resource-group {rg} --namespace-name {namespacename} --name {queuename} ',
+            'servicebus queue create --resource-group {rg} --namespace-name {namespacename} --name {queuename} --auto-delete-on-idle {lock_duration} ',
                                      checks=[self.check('name', self.kwargs['queuename'])]).output
 
         # Get Queue
         getqueueresult = self.cmd(
-            'servicebus queue get --resource-group {rg} --namespace-name {namespacename} --name {queuename} ',
+            'servicebus queue get --resource-group {rg} --namespace-name {namespacename} --name {queuename}',
             checks=[self.check('name', self.kwargs['queuename'])]).output
 
         # Queue List

@@ -14,11 +14,10 @@ from azure.mgmt.servicebus.models.service_bus_management_client_enums import Sku
 
 
 # Namespace Region
-def cli_namespace_create(client, resource_group_name, namespace_name, location, tags=None, sku='Standard', skutier=None):
-    test11 = SBNamespace(location, tags, sku)
+def cli_namespace_create(client, resource_group_name, namespace_name, location, tags=None, sku='Standard', skutier=None, capacity=None):
     result = client.create_or_update(resource_group_name, namespace_name, SBNamespace(location, tags,
                                                                                       SBSku(skunameconverter(sku),
-                                                                                            skutireconverter(skutier)))).result()
+                                                                                            skutireconverter(skutier))))
     return result
 
 def cli_namespace_list(client, resource_group_name=None, namespace_name=None):
@@ -37,16 +36,16 @@ def cli_namespace_list(client, resource_group_name=None, namespace_name=None):
 
 def cli_namespace_delete(client, resource_group_name, namespace_name):
     try:
-        client.delete(resource_group_name, namespace_name).result()
+        client.delete(resource_group_name, namespace_name)
     except: ErrorResponseException
 
 
 # Namespace Authorization rule:
 
 def cli_namespaceautho_create(client, resource_group_name, namespace_name, name, accessrights=None):
-    temp1 = ['Send', 'Listen']
+    rights = ['Send', 'Listen']
     result = client.create_or_update_authorization_rule(resource_group_name, namespace_name, name,
-                                                        accessrights_converter(temp1))
+                                                        accessrights_converter(rights))
     return result
 
 def cli_namespaceautho_get(client, resource_group_name, namespace_name, name):
@@ -71,18 +70,33 @@ def cli_namespaceautho_delete(client, resource_group_name, namespace_name, name)
 
 
 # Queue Region
-def cli_sbqueue_create(client, resource_group_name, namespace_name, name, queue_params=None):
-    if (not queue_params):
-        queue_params = SBQueue()
-        result = client.create_or_update(resource_group_name, namespace_name, name, queue_params)
-        return result
+def cli_sbqueue_create(client, resource_group_name, namespace_name, name, lock_duration=None, max_size_in_megabytes=None, requires_duplicate_detection=None, requires_session=None, default_message_time_to_live=None, dead_lettering_on_message_expiration=None, duplicate_detection_history_time_window=None, max_delivery_count=None, status=None, auto_delete_on_idle=None, enable_partitioning=None, enable_express=None, forward_to=None, forward_dead_lettered_messages_to=None):
+
+    queue_params = SBQueue(
+        lock_duration=lock_duration,
+        max_size_in_megabytes=max_size_in_megabytes,
+        requires_duplicate_detection=requires_duplicate_detection,
+        requires_session=requires_session,
+        default_message_time_to_live=default_message_time_to_live,
+        dead_lettering_on_message_expiration=dead_lettering_on_message_expiration,
+        duplicate_detection_history_time_window=duplicate_detection_history_time_window,
+        max_delivery_count=max_delivery_count,
+        status=status,
+        auto_delete_on_idle=auto_delete_on_idle,
+        enable_partitioning=enable_partitioning,
+        enable_express=enable_express,
+        # forward_to=forward_to,
+        # forward_dead_lettered_messages_to=forward_dead_lettered_messages_to
+    )
+    result = client.create_or_update(resource_group_name, namespace_name, name, queue_params)
+    return result
 
 def cli_sbbqueue_list(client, resource_group_name, namespace_name, name=None):
-    if (name):
+    if name:
         result = client.get(resource_group_name, namespace_name, name)
         return result
 
-    if (not name):
+    if not name:
         result = list(client.list_by_namespace(resource_group_name, namespace_name))
         return result
 
@@ -122,18 +136,28 @@ def cli_sbqueue_delete(client, resource_group_name, namespace_name, name):
 
 
 # Topic Region
-def cli_sbtopic_create(client, resource_group_name, namespace_name, name, topic_params=None):
-    if (not topic_params):
-        topic_params = SBTopic()
-        result = client.create_or_update(resource_group_name, namespace_name, name, topic_params)
-        return result
+def cli_sbtopic_create(client, resource_group_name, namespace_name, name, default_message_time_to_live=None, max_size_in_megabytes=None, requires_duplicate_detection=None, duplicate_detection_history_time_window=None, enable_batched_operations=None, status=None, support_ordering=None, auto_delete_on_idle=None, enable_partitioning=None, enable_express=None):
+    topic_params = SBTopic(
+        default_message_time_to_live=default_message_time_to_live,
+        max_size_in_megabytes=max_size_in_megabytes,
+        requires_duplicate_detection=requires_duplicate_detection,
+        duplicate_detection_history_time_window=duplicate_detection_history_time_window,
+        enable_batched_operations=enable_batched_operations,
+        status=status,
+        support_ordering=support_ordering,
+        auto_delete_on_idle=auto_delete_on_idle,
+        enable_partitioning=enable_partitioning,
+        enable_express=enable_express
+    )
+    result = client.create_or_update(resource_group_name, namespace_name, name, topic_params)
+    return result
 
 def cli_sbtopic_list(client, resource_group_name, namespace_name, name=None):
-    if (name):
+    if name:
         result = client.get(resource_group_name, namespace_name, name)
         return result
 
-    if (not name):
+    if not name:
         result = list(client.list_by_namespace(resource_group_name, namespace_name))
         return result
 
@@ -184,18 +208,18 @@ def cli_sbsubscription_create(client, resource_group_name, namespace_name, topic
             status=status,
             enable_batched_operations=enable_batched_operations,
             auto_delete_on_idle=auto_delete_on_idle,
-            forward_to=forward_to,
-            forward_dead_lettered_messages_to=forward_dead_lettered_messages_to
+            # forward_to=forward_to,
+            # forward_dead_lettered_messages_to=forward_dead_lettered_messages_to
         )
         result = client.create_or_update(resource_group_name, namespace_name, topic_name, name, subscription_params)
         return result
 
 def cli_sbsubscription_list(client, resource_group_name, namespace_name, topic_name, name=None):
-    if (name):
+    if name:
         result = client.get(resource_group_name, namespace_name, topic_name, name)
         return result
 
-    if (not name):
+    if not name:
         result = list(client.list_by_topic(resource_group_name, namespace_name, topic_name))
         return result
 

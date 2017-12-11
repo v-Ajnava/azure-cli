@@ -33,7 +33,7 @@ CLASSIFIERS = [
 ]
 
 DEPENDENCIES = [
-    'azure-mgmt-servicebus==0.3.0 ',
+    'azure-mgmt-servicebus==0.3.1 ',
     'azure-cli-core'
 ]
 
