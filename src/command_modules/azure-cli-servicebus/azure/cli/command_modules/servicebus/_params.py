@@ -20,7 +20,7 @@ def load_arguments(self, _):
     # region - Namespace Create
     with self.argument_context('servicebus namespace create') as c:
         c.argument('resource_group_name', arg_type=resource_group_name_type, required=True)
-        c.argument('namespace_name', options_list=['--namespace-name'], required=True, help='name of the Namespace')
+        c.argument('namespace_name', options_list=['--name'], required=True, help='name of the Namespace')
         c.argument('tags', options_list=['--tags', '-t'], arg_type=tags_type, help='tags for the namespace in Key value pair format')
         c.argument('sku', options_list=['--sku-name'], arg_type=get_enum_type(['Basic', 'Standard', 'Premium']), help='Sku name and allowed values are, Basic, Standard, Premium')
         c.argument('location', options_list=['--location', '-l'], help='Location')
@@ -28,20 +28,23 @@ def load_arguments(self, _):
         c.argument('capacity', option_list=['--capacity'], help='Capacity for Sku')
 
     # region Namespace Get
-    with self.argument_context('servicebus namespace get') as c:
-        c.argument('resource_group_name', arg_type=resource_group_name_type, required=True)
-        c.argument('name', options_list=['--namespace-name', '-n'], required=True, help='name of the Namespace')
+    for scope in ['servicebus namespace get', 'servicebus namespace delete']:
+        with self.argument_context(scope) as c:
+            c.argument('resource_group_name', arg_type=resource_group_name_type, required=True)
+            c.argument('namespace_name', options_list=['--name', '-n'], required=True, help='name of the Namespace')
+
+    with self.argument_context('servicebus namespace list') as c:
+        c.argument('resource_group_name', arg_type=resource_group_name_type, required=False)
 
     # region Namespace Authorizationrule
-    for scope in ['servicebus namespace authorizationrule create', 'servicebus namespace authorizationrule get', 'servicebus namespace authorizationrule listkeys', 'servicebus namespace authorizationrule regeneratekeys']:
-        with self.argument_context('servicebus namespace authorizationrule create') as c:
+    for scope in ['servicebus namespace authorizationrule create', 'servicebus namespace authorizationrule get', 'servicebus namespace authorizationrule listkeys', 'servicebus namespace authorizationrule regeneratekeys', 'servicebus namespace authorizationrule delete']:
+        with self.argument_context(scope) as c:
             c.argument('resource_group_name', arg_type=resource_group_name_type, required=True),
-            c.argument('namespace', options_list=['--namespace-name', '-n'], required=True, help='name of the Namespace'),
-            c.argument('name', options_list=['--name', '-n'], required=True, help='name of the Namespace AuthorizationRule')
+            c.argument('namespace_name', options_list=['--namespace-name'], required=True, help='name of the Namespace'),
+            c.argument('authorization_rule_name', options_list=['--name'], required=True, help='name of the Namespace AuthorizationRule')
 
     with self.argument_context('servicebus namespace authorizationrule create') as c:
         c.argument('accessrights', options_list=['--access-rights'], required=False, help='Authorization rule rights of type list, allowed values are Send, Listen or Manage')
-
 
     with self.argument_context('servicebus namespace authorizationrule regeneratekeys') as c:
         c.argument('regeneratekey', options_list=['--regeneratekey'], required=True, arg_type=get_enum_type(['PrimaryKey', 'SecondaryKey']), help='Authorization rule rights of type list, allowed values are Send, Listen or Manage')
@@ -51,7 +54,7 @@ def load_arguments(self, _):
     with self.argument_context('servicebus queue create') as c:
         c.argument('resource_group_name', arg_type=resource_group_name_type, required=True)
         c.argument('namespace_name', options_list=['--namespace-name'], required=True, help='name of the Namespace')
-        c.argument('name', options_list=['--name', '-n'], required=True, help='Queue Name'),
+        c.argument('queue_name', options_list=['--name', '-n'], required=True, help='Queue Name'),
         c.argument('lock_duration', options_list=['--lock-duration'], validator=_validate_lock_duration, help='String ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. The maximum value for LockDuration is 5 minutes; the default value is 1 minute.'),
         c.argument('max_size_in_megabytes', options_list=['--max-size-in-megabytes'], type=int, validator=_validate_maxSizeInMegabytes, help='The maximum size of the queue in megabytes, which is the size of memory allocated for the queue. Default is 1024.'),
         c.argument('requires_duplicate_detection', options_list=['--requires-duplicate-detection'], type=bool, validator=_validate_requiresDuplicateDetection, help='A boolean value indicating if this queue requires duplicate detection.'),
@@ -68,22 +71,27 @@ def load_arguments(self, _):
         c.argument('forward_dead_lettered_messages_to', arg_type=name_type, options_list=['--forward-dead-lettered-messages-to'], help='Queue/Topic name to forward the Dead Letter message')
 
     # region Queue Get
-    with self.argument_context('servicebus queue get') as c:
+    for scope in ['servicebus queue get', 'servicebus queue delete']:
+        with self.argument_context(scope) as c:
+            c.argument('resource_group_name', arg_type=resource_group_name_type, required=True)
+            c.argument('namespace_name', options_list=['--namespace-name'], required=True, help='name of the Namespace')
+            c.argument('queue_name', options_list=['--name', '-n'], required=True, help='Queue Name')
+
+    # region Queue Get
+    with self.argument_context('servicebus queue list') as c:
         c.argument('resource_group_name', arg_type=resource_group_name_type, required=True)
-        c.argument('namespace_name', options_list=['--namespace-name'], required=True,
-                   help='name of the Namespace')
-        c.argument('name', options_list=['--name', '-n'], required=True, help='Queue Name')
+        c.argument('namespace_name', options_list=['--namespace-name'], required=True, help='name of the Namespace')
 
     # region Queue Authorizationrule
-    for scope in ['servicebus queue authorizationrule create', 'servicebus queue authorizationrule get',
+    for scope in ['servicebus queue authorizationrule create', 'servicebus queue authorizationrule get', 'servicebus queue authorizationrule delete',
                   'servicebus queue authorizationrule listkeys',
                   'servicebus queue authorizationrule regeneratekeys']:
-        with self.argument_context('servicebus queue authorizationrule create') as c:
-            c.argument('name', options_list=['--name', '-n'], required=True,
+        with self.argument_context(scope) as c:
+            c.argument('authorization_rule_name', options_list=['--name'], required=True,
                            help='name of the Queue AuthorizationRule')
-            c.argument('namespace', options_list=['--namespace-name', '-n'], required=True,
+            c.argument('namespace', options_list=['--namespace-name'], required=True,
                            help='name of the Namespace')
-            c.argument('queuename', options_list=['--queue-name', '-n'], required=True,
+            c.argument('queuename', options_list=['--queue-name'], required=True,
                        help='name of the Queue')
 
     with self.argument_context('servicebus queue authorizationrule create') as c:
@@ -100,7 +108,7 @@ def load_arguments(self, _):
     with self.argument_context('servicebus topic create') as c:
         c.argument('resource_group_name', arg_type=resource_group_name_type, required=True),
         c.argument('namespace_name', options_list=['--namespace-name'], required=True, help='name of the Namespace'),
-        c.argument('name', options_list=['--name', '-n'], required=True, help='Topic Name'),
+        c.argument('topic_name', options_list=['--name', '-n'], required=True, help='Topic Name'),
         c.argument('default_message_time_to_live', options_list=['--default-message-time-to-live'], validator=_validate_default_message_time_to_live, help='ISO 8601 Default message timespan to live value. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.'),
         c.argument('max_size_in_megabytes', options_list=['--max-size-in-megabytes'], validator=_validate_maxSizeInMegabytes, help='Maximum size of the topic in megabytes, which is the size of the memory allocated for the topic. Default is 1024.'),
         c.argument('requires_duplicate_detection', options_list=['--requires-duplicate-detection'], validator=_validate_requiresDuplicateDetection, help='Value indicating if this topic requires duplicate detection.'),
@@ -113,21 +121,26 @@ def load_arguments(self, _):
         c.argument('enable_express', options_list=['--enable-express'], validator=_validate_enable_express, help='Value that indicates whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage.')
 
     # region Topic Get
-    with self.argument_context('servicebus topic get') as c:
+    for scope in ['servicebus topic get', 'servicebus topic delete']:
+        with self.argument_context(scope) as c:
+            c.argument('resource_group_name', arg_type=resource_group_name_type, required=True),
+            c.argument('namespace_name', options_list=['--namespace-name'], required=True, help='name of the Namespace'),
+            c.argument('topic_name', options_list=['--name', '-n'], help='Topic Name')
+
+    with self.argument_context('servicebus topic list') as c:
         c.argument('resource_group_name', arg_type=resource_group_name_type, required=True),
-        c.argument('name', options_list=['--namespace-name', '-n'], required=True, help='name of the Namespace'),
-        c.argument('name', options_list=['--name', '-n'], help='Topic Name')
+        c.argument('namespace_name', options_list=['--namespace-name', '-n'], required=True, help='name of the Namespace')
 
     # region Topic Authorizationrule
-    for scope in ['servicebus topic authorizationrule create', 'servicebus topic authorizationrule get',
+    for scope in ['servicebus topic authorizationrule create', 'servicebus topic authorizationrule get',  'servicebus topic authorizationrule delete',
                   'servicebus topic authorizationrule listkeys',
                   'servicebus topic authorizationrule regeneratekeys']:
-        with self.argument_context('servicebus topic authorizationrule create') as c:
-            c.argument('name', options_list=['--name', '-n'], required=True,
+        with self.argument_context(scope) as c:
+            c.argument('authorization_rule_name', options_list=['--name'], required=True,
                            help='name of the Topic AuthorizationRule')
-            c.argument('namespace', options_list=['--namespace-name', '-n'], required=True,
+            c.argument('namespace_name', options_list=['--namespace-name'], required=True,
                            help='name of the Namespace')
-            c.argument('queuename', options_list=['--topic-name', '-n'], required=True,
+            c.argument('topic_name', options_list=['--topic-name'], required=True,
                        help='name of the Topic')
 
     with self.argument_context('servicebus topic authorizationrule create') as c:
@@ -145,8 +158,8 @@ def load_arguments(self, _):
     with self.argument_context('servicebus subscription create') as c:
         c.argument('resource_group_name', arg_type=resource_group_name_type, required=True),
         c.argument('namespace_name', options_list=['--namespace-name'], required=True,help='name of the Namespace'),
-        c.argument('topicname', options_list=['--topic-name', '-n'], required=True, help='Topic Name'),
-        c.argument('name', options_list=['--name', '-n'], required=True, help='Subscription Name'),
+        c.argument('topic_name', options_list=['--topic-name', '-n'], required=True, help='Topic Name'),
+        c.argument('subscription_name', options_list=['--name', '-n'], required=True, help='Subscription Name'),
         c.argument('lock_duration', options_list=['--lock-duration'], validator=_validate_lock_duration, help='ISO 8601 lock duration timespan for the subscription. The default value is 1 minute.'),
         c.argument('requires_session', options_list=['--enable-express'], validator=_validate_requires_session, help='A boolean value that indicates whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage.')
         c.argument('default_message_time_to_live', options_list=['--default-message-time-to-live'], validator=_validate_default_message_time_to_live, help='ISO 8601 Default message timespan to live value. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.'),
@@ -160,16 +173,12 @@ def load_arguments(self, _):
         # c.argument('forward_dead_lettered_messages_to', options_list=['--forward-dead-lettered-messages-to'], help='Queue/Topic name to forward the Dead Letter message')
 
     # region Subscription Get
-    with self.argument_context('servicebus subscription get') as c:
-        c.argument('namespacename', options_list=['--namespace-name', '-n'], required=True, help='name of the Namespace'),
-        c.argument('topicname', options_list=['--topic-name', '-n'], help='name of the Topic'),
-        c.argument('name', options_list=['--name', '-n'], help='name of the Subscription of Topic')
+    for scope in ['servicebus subscription get', 'servicebus subscription delete']:
+        with self.argument_context(scope) as c:
+            c.argument('namespacename', options_list=['--namespace-name', '-n'], required=True, help='name of the Namespace'),
+            c.argument('topic_name', options_list=['--topic-name', '-n'], help='name of the Topic'),
+            c.argument('subscription_name', options_list=['--name', '-n'], help='name of the Subscription of Topic')
 
     with self.argument_context('servicebus subscription list') as c:
-        c.argument('namespacename', options_list=['--namespace-name', '-n'], required=True, help='name of the Namespace'),
-        c.argument('topicname', options_list=['--topic-name', '-n'], help='name of the Topic')
-
-    with self.argument_context('servicebus subscription delete') as c:
-        c.argument('namespacename', options_list=['--namespace-name', '-n'], required=True, help='name of the Namespace'),
-        c.argument('topicname', options_list=['--topic-name', '-n'], required=True, help='name of the Topic'),
-        c.argument('name', options_list=['--name', '-n'], required=True, help='name of the Subscription of Topic')
+        c.argument('namespace_name', options_list=['--namespace-name', '-n'], required=True, help='name of the Namespace'),
+        c.argument('topic_name', options_list=['--topic-name', '-n'], required=True, help='name of the Topic')

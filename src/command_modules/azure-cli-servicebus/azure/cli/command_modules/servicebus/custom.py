@@ -34,11 +34,6 @@ def cli_namespace_list(client, resource_group_name=None, namespace_name=None):
         result = list(client.list(resource_group_name, namespace_name))
         return result
 
-def cli_namespace_delete(client, resource_group_name, namespace_name):
-    try:
-        client.delete(resource_group_name, namespace_name)
-    except: ErrorResponseException
-
 
 # Namespace Authorization rule:
 
@@ -48,26 +43,9 @@ def cli_namespaceautho_create(client, resource_group_name, namespace_name, name,
                                                         accessrights_converter(rights))
     return result
 
-def cli_namespaceautho_get(client, resource_group_name, namespace_name, name):
-    result = client.get_authorization_rule(resource_group_name, namespace_name, name)
-    return result
-
-def cli_namespaceautho_list(client, resource_group_name, name):
-    result = client.list_authorization_rules(resource_group_name, name)
-    return result
-
-def cli_namespaceautho_listkeys(client, resource_group_name, namespace_name, name):
-    result = client.list_keys(resource_group_name, namespace_name, name)
-    return result
-
 def cli_namespaceautho_regeneratekey(client, resource_group_name, namespace_name, name, regeneratekey):
     result = client.regenerate_keys(resource_group_name, namespace_name, name, regeneratekey)
     return result
-
-def cli_namespaceautho_delete(client, resource_group_name, namespace_name, name):
-    result = client.delete_authorization_rule(resource_group_name, namespace_name, name)
-    return result
-
 
 # Queue Region
 def cli_sbqueue_create(client, resource_group_name, namespace_name, name, lock_duration=None, max_size_in_megabytes=None, requires_duplicate_detection=None, requires_session=None, default_message_time_to_live=None, dead_lettering_on_message_expiration=None, duplicate_detection_history_time_window=None, max_delivery_count=None, status=None, auto_delete_on_idle=None, enable_partitioning=None, enable_express=None, forward_to=None, forward_dead_lettered_messages_to=None):
@@ -91,49 +69,15 @@ def cli_sbqueue_create(client, resource_group_name, namespace_name, name, lock_d
     result = client.create_or_update(resource_group_name, namespace_name, name, queue_params)
     return result
 
-def cli_sbbqueue_list(client, resource_group_name, namespace_name, name=None):
-    if name:
-        result = client.get(resource_group_name, namespace_name, name)
-        return result
-
-    if not name:
-        result = list(client.list_by_namespace(resource_group_name, namespace_name))
-        return result
-
-def cli_sbqueue_get(client, resource_group_name, namespace_name, name):
-    result = client.get(resource_group_name, namespace_name, name)
-    return result
-
 def cli_sbqueueautho_create(client, resource_group_name, namespace_name, queue_name, name, accessrights=None):
     temp1 = ['Send', 'Listen']
     result = client.create_or_update_authorization_rule(resource_group_name, namespace_name, queue_name, name,
                                                             accessrights_converter(temp1))
     return result
 
-def cli_sbqueueautho_get(client, resource_group_name, namespace_name, queue_name, name):
-    result = client.get_authorization_rule(resource_group_name, namespace_name, queue_name, name)
-    return result
-
-def cli_sbqueueautho_list(client, resource_group_name, namespace_name):
-    result = client.list_authorization_rules(resource_group_name, namespace_name)
-    return result
-
-def cli_sbqueueautho_listkeys(client, resource_group_name, namespace_name, queue_name, name):
-    result = client.list_keys(resource_group_name, namespace_name, queue_name, name)
-    return result
-
 def cli_sbqueueautho_regeneratekey(client, resource_group_name, namespace_name, queue_name, name, regeneratekey):
     result = client.regenerate_keys(resource_group_name, namespace_name, queue_name, name, regeneratekey)
     return result
-
-def cli_sbqueueautho_delete(client, resource_group_name, namespace_name, queue_name, name):
-    result = client.delete_authorization_rule(resource_group_name, namespace_name, queue_name, name)
-    return result
-
-def cli_sbqueue_delete(client, resource_group_name, namespace_name, name):
-    result = client.delete(resource_group_name, namespace_name, name)
-    return result
-
 
 # Topic Region
 def cli_sbtopic_create(client, resource_group_name, namespace_name, name, default_message_time_to_live=None, max_size_in_megabytes=None, requires_duplicate_detection=None, duplicate_detection_history_time_window=None, enable_batched_operations=None, status=None, support_ordering=None, auto_delete_on_idle=None, enable_partitioning=None, enable_express=None):
@@ -152,49 +96,15 @@ def cli_sbtopic_create(client, resource_group_name, namespace_name, name, defaul
     result = client.create_or_update(resource_group_name, namespace_name, name, topic_params)
     return result
 
-def cli_sbtopic_list(client, resource_group_name, namespace_name, name=None):
-    if name:
-        result = client.get(resource_group_name, namespace_name, name)
-        return result
-
-    if not name:
-        result = list(client.list_by_namespace(resource_group_name, namespace_name))
-        return result
-
-def cli_sbtopic_get(client, resource_group_name, namespace_name, name):
-    result = client.get(resource_group_name, namespace_name, name)
-    return result
-
 def cli_sbtopicautho_create(client, resource_group_name, namespace_name, topic_name, name, accessrights=None):
     temp1 = ['Send', 'Listen']
     result = client.create_or_update_authorization_rule(resource_group_name, namespace_name, topic_name, name,
                                                             accessrights_converter(temp1))
     return result
 
-def cli_sbtopicautho_get(client, resource_group_name, namespace_name, topic_name, name):
-    result = client.get_authorization_rule(resource_group_name, namespace_name, topic_name, name)
-    return result
-
-def cli_sbtopicautho_list(client, resource_group_name, namespace_name):
-    result = client.list_authorization_rules(resource_group_name, namespace_name)
-    return result
-
-def cli_sbtopicautho_listkeys(client, resource_group_name, namespace_name, topic_name, name):
-    result = client.list_keys(resource_group_name, namespace_name, topic_name, name)
-    return result
-
 def cli_sbtopicautho_regeneratekey(client, resource_group_name, namespace_name, topic_name, name, regeneratekey):
     result = client.regenerate_keys(resource_group_name, namespace_name, topic_name, name, regeneratekey)
     return result
-
-def cli_sbtopicautho_delete(client, resource_group_name, namespace_name, topic_name, name):
-    result = client.delete_authorization_rule(resource_group_name, namespace_name, topic_name, name)
-    return result
-
-def cli_sbtopic_delete(client, resource_group_name, namespace_name, name):
-    result = client.delete(resource_group_name, namespace_name, name)
-    return result
-
 
 # Subscription Region
 def cli_sbsubscription_create(client, resource_group_name, namespace_name, topic_name, name, lock_duration=None, requires_session=None, default_message_time_to_live=None, dead_lettering_on_message_expiration=None, duplicate_detection_history_time_window=None, max_delivery_count=None, status=None, enable_batched_operations=None, auto_delete_on_idle=None, forward_to=None, forward_dead_lettered_messages_to=None):
@@ -213,20 +123,3 @@ def cli_sbsubscription_create(client, resource_group_name, namespace_name, topic
         )
         result = client.create_or_update(resource_group_name, namespace_name, topic_name, name, subscription_params)
         return result
-
-def cli_sbsubscription_list(client, resource_group_name, namespace_name, topic_name, name=None):
-    if name:
-        result = client.get(resource_group_name, namespace_name, topic_name, name)
-        return result
-
-    if not name:
-        result = list(client.list_by_topic(resource_group_name, namespace_name, topic_name))
-        return result
-
-def cli_sbsubscription_get(client, resource_group_name, namespace_name, topic_name, name):
-    result = client.get(resource_group_name, namespace_name, topic_name, name)
-    return result
-
-def cli_sbsubscription_delete(client, resource_group_name, namespace_name, topic_name, name):
-    result = client.delete(resource_group_name, namespace_name, topic_name, name)
-    return result

@@ -46,17 +46,21 @@ class SBNamespaceCURDScenarioTest(ScenarioTest):
         })
 
         # Create Namespace
-        createnamespaceresult = self.cmd('servicebus namespace create --resource-group {rg} --namespace-name {namespacename} '
+        createnamespaceresult = self.cmd('servicebus namespace create --resource-group {rg} --name {namespacename} '
                           '--location {loc} --tags {tags} --sku-name {sku} --skutier {tier}',
                           checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
         # Get Created Namespace
-        getnamespaceresult = self.cmd('servicebus namespace get --resource-group {rg} --namespace-name {namespacename}',
+        getnamespaceresult = self.cmd('servicebus namespace get --resource-group {rg} --name {namespacename}',
                           checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
-        # Get Created Namespace list by ResourceGroup
+        # Get Created Namespace list by subscription
         listnamespaceresult = self.cmd('servicebus namespace list').output
         self.assertGreater(len(listnamespaceresult), 0)
+
+        # Get Created Namespace list by ResourceGroup
+        listnamespacebyresourcegroupresult = self.cmd('servicebus namespace list --resource-group {rg}').output
+        self.assertGreater(len(listnamespacebyresourcegroupresult), 0)
 
         # Create Authoriazation Rule
         # createauthorizationruleresult = self.cmd('servicebus namespace authorizationrule create --resource-group {rg} --namespace-name {namespacename} --name {authoname} --access-rights {accessrights}',
@@ -92,7 +96,7 @@ class SBNamespaceCURDScenarioTest(ScenarioTest):
             'servicebus namespace authorizationrule delete --resource-group {rg} --namespace-name {namespacename} --name {authoname}').output
 
         # Delete Namespace list by ResourceGroup
-        self.cmd('servicebus namespace delete --resource-group {rg} --namespace-name {namespacename}')
+        self.cmd('servicebus namespace delete --resource-group {rg} --name {namespacename}')
 
 
 

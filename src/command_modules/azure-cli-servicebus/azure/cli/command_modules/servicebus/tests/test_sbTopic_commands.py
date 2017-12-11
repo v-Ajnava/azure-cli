@@ -49,13 +49,13 @@ class SBTopicsCURDScenarioTest(ScenarioTest):
 
         # Create Namespace
         createnamespaceresult = self.cmd(
-            'servicebus namespace create --resource-group {rg} --namespace-name {namespacename} '
+            'servicebus namespace create --resource-group {rg} --name {namespacename} '
                           '--location {loc} --tags {tags} --sku-name {sku} --skutier {tier}',
                           checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
         # Get Created Namespace
         getnamespaceresult = self.cmd(
-            'servicebus namespace get --resource-group {rg} --namespace-name {namespacename}',
+            'servicebus namespace get --resource-group {rg} --name {namespacename}',
                           checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
         # Create Topic
@@ -105,4 +105,4 @@ class SBTopicsCURDScenarioTest(ScenarioTest):
         self.cmd('servicebus topic delete --resource-group {rg} --namespace-name {namespacename} --name {topicname}')
 
         # Delete Namespace
-        self.cmd('servicebus namespace delete --resource-group {rg} --namespace-name {namespacename}')
+        self.cmd('servicebus namespace delete --resource-group {rg} --name {namespacename}')
