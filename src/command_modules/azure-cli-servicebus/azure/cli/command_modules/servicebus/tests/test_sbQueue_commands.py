@@ -3,25 +3,13 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-# AZURE CLI VM TEST DEFINITIONS
-import json
+# AZURE CLI SERVICEBUS - QUEUE TEST DEFINITIONS
 import os
-import platform
-import tempfile
-import time
-import unittest
-import mock
-import uuid
-
-import six
 
 from knack.util import CLIError
 
-from azure.cli.core.profiles import ResourceType
 from azure.cli.testsdk import (
-    ScenarioTest, ResourceGroupPreparer, LiveScenarioTest, api_version_constraint, StorageAccountPreparer)
-
-TEST_DIR = os.path.abspath(os.path.join(os.path.abspath(__file__), '..'))
+    ScenarioTest, ResourceGroupPreparer)
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-lines
@@ -51,63 +39,70 @@ class SBQueueCURDScenarioTest(ScenarioTest):
 
         # Create Namespace
         createnamespaceresult = self.cmd(
-            'servicebus namespace create --resource-group {rg} --name {namespacename} '
-                          '--location {loc} --tags {tags} --sku-name {sku} --skutier {tier}',
+            'sb namespace create --resource-group {rg} --name {namespacename} '
+                          '--location {loc} --tags {tags} --sku-name {sku} --sku-tier {tier}',
                           checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
         # Get Created Namespace
         getnamespaceresult = self.cmd(
-            'servicebus namespace get --resource-group {rg} --name {namespacename}',
+            'sb namespace get --resource-group {rg} --name {namespacename}',
                           checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
         # Create Queue
         createqueueresult = self.cmd(
-            'servicebus queue create --resource-group {rg} --namespace-name {namespacename} --name {queuename} --auto-delete-on-idle {lock_duration} ',
+            'sb queue create --resource-group {rg} --namespace-name {namespacename} --name {queuename}'
+            ' --auto-delete-on-idle {lock_duration} ',
                                      checks=[self.check('name', self.kwargs['queuename'])]).output
 
         # Get Queue
         getqueueresult = self.cmd(
-            'servicebus queue get --resource-group {rg} --namespace-name {namespacename} --name {queuename}',
+            'sb queue get --resource-group {rg} --namespace-name {namespacename} --name {queuename}',
             checks=[self.check('name', self.kwargs['queuename'])]).output
 
         # Queue List
         listqueueresult = self.cmd(
-            'servicebus queue list --resource-group {rg} --namespace-name {namespacename}').output
+            'sb queue list --resource-group {rg} --namespace-name {namespacename}').output
 
         # Create Authoriazation Rule
-        # createauthorizationruleresult = self.cmd('servicebus namespace authorizationrule create --resource-group {rg} --namespace-name {namespacename} --name {authoname} --access-rights {accessrights}',
+        # createauthorizationruleresult = self.cmd('sb namespace authorizationrule create --resource-group {rg} --namespace-name {namespacename} --name {authoname} --access-rights {accessrights}',
         createauthorizationruleresult = self.cmd(
-            'servicebus queue authorizationrule create --resource-group {rg} --namespace-name {namespacename} --queue-name {queuename} --name {authoname}',
+            'sb queue authorizationrule create --resource-group {rg} --namespace-name {namespacename}'
+            ' --queue-name {queuename} --name {authoname}',
                           checks=[self.check('name', self.kwargs['authoname'])]).output
 
         # Get Create Authorization Rule
         getauthorizationruleresult = self.cmd(
-            'servicebus queue authorizationrule get --resource-group {rg} --namespace-name {namespacename} --queue-name {queuename} --name {authoname}',
+            'sb queue authorizationrule get --resource-group {rg} --namespace-name {namespacename}'
+            ' --queue-name {queuename} --name {authoname}',
             checks=[self.check('name', self.kwargs['authoname'])]).output
 
         # Get Authorization Rule Listkeys
         authorizationrulelistkeysresult = self.cmd(
-            'servicebus queue authorizationrule listkeys --resource-group {rg} --namespace-name {namespacename} --queue-name {queuename} --name {authoname}').output
+            'sb queue authorizationrule listkeys --resource-group {rg} --namespace-name {namespacename}'
+            ' --queue-name {queuename} --name {authoname}').output
 
         # Regeneratekeys - Primary
         regenrateprimarykeyresult = self.cmd(
-            'servicebus queue authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename} --queue-name {queuename} --name {authoname} --regeneratekey {primary}').output
+            'sb queue authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename}'
+            ' --queue-name {queuename} --name {authoname} --key {primary}').output
         self.assertIsNotNone(regenrateprimarykeyresult)
 
         # Regeneratekeys - Secondary
         regenratesecondarykeyresult = self.cmd(
-            'servicebus queue authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename} --queue-name {queuename} --name {authoname} --regeneratekey {secondary}').output
+            'sb queue authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename}'
+            ' --queue-name {queuename} --name {authoname} --key {secondary}').output
         self.assertIsNotNone(regenratesecondarykeyresult)
 
         # Delete Queue AuthorizationRule
         deleteauthorizationruleresult = self.cmd(
-            'servicebus queue authorizationrule delete --resource-group {rg} --namespace-name {namespacename} --queue-name {queuename} --name {authoname}').output
+            'sb queue authorizationrule delete --resource-group {rg} --namespace-name {namespacename}'
+            ' --queue-name {queuename} --name {authoname}').output
 
         # Delete Queue
-        self.cmd('servicebus queue delete --resource-group {rg} --namespace-name {namespacename} --name {queuename}')
+        self.cmd('sb queue delete --resource-group {rg} --namespace-name {namespacename} --name {queuename}')
 
         # Delete Namespace
-        self.cmd('servicebus namespace delete --resource-group {rg} --name {namespacename}')
+        self.cmd('sb namespace delete --resource-group {rg} --name {namespacename}')
 
 
 

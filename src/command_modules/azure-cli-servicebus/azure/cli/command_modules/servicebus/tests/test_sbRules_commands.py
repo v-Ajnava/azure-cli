@@ -3,34 +3,19 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-# AZURE CLI VM TEST DEFINITIONS
-import json
-import os
-import platform
-import tempfile
-import time
-import unittest
-import mock
-import uuid
+# AZURE CLI SERVICEBUS - RULES TEST DEFINITIONS
 
-import six
-
-from knack.util import CLIError
-
-from azure.cli.core.profiles import ResourceType
 from azure.cli.testsdk import (
-    ScenarioTest, ResourceGroupPreparer, LiveScenarioTest, api_version_constraint, StorageAccountPreparer)
-
-TEST_DIR = os.path.abspath(os.path.join(os.path.abspath(__file__), '..'))
+    ScenarioTest, ResourceGroupPreparer)
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-lines
 
 
-class SBSubscriptionCURDScenarioTest(ScenarioTest):
+class SBRulesCURDScenarioTest(ScenarioTest):
 
     @ResourceGroupPreparer(name_prefix='cli_test_sb_namespace')
-    def test_sb_namespace(self, resource_group):
+    def test_sb_rules(self, resource_group):
 
         self.kwargs.update({
             'loc': 'westus2',
@@ -45,7 +30,9 @@ class SBSubscriptionCURDScenarioTest(ScenarioTest):
             'secondary': 'SecondaryKey',
             'topicname': self.create_random_name(prefix='sb-topiccli', length=25),
             'topicauthoname': self.create_random_name(prefix='cliTopicAutho', length=25),
-            'subscriptionname': self.create_random_name(prefix='sb-subscli', length=25)
+            'subscriptionname': self.create_random_name(prefix='sb-subscli', length=25),
+            'rulename': self.create_random_name(prefix='sb-rulecli', length=25),
+            'sqlexpression': 'test=test'
         })
 
         # Create Namespace
@@ -72,21 +59,41 @@ class SBSubscriptionCURDScenarioTest(ScenarioTest):
         # Create Subscription
         createsubscriptionresult = self.cmd(
             'sb subscription create --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname}'
-            ' --name {subscriptionname}', checks=[self.check('name', self.kwargs['subscriptionname'])]).output
+            ' --name {subscriptionname}',
+            checks=[self.check('name', self.kwargs['subscriptionname'])]).output
 
         # Get Create Subscription
         getsubscriptionresult = self.cmd(
-            'sb subscription get --resource-group {rg} --namespace-name {namespacename}'
-            ' --topic-name {topicname} --name {subscriptionname}', checks=[self.check('name', self.kwargs['subscriptionname'])]).output
+            'sb subscription get --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname}'
+            ' --name {subscriptionname}',
+            checks=[self.check('name', self.kwargs['subscriptionname'])]).output
 
-        # Get list of Subscription+
-        listsubscriptionresult = self.cmd(
-            'sb subscription list --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname}')\
-            .output
+        # Create Rules
+        createrulesresult = self.cmd(
+            'sb rule create --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname}'
+            ' --subscription-name {subscriptionname} --name {rulename} --filter-sql-expression {sqlexpression}',
+            checks=[self.check('name', self.kwargs['rulename'])]).output
+
+        # Get Created Rules
+        getrulesnresult = self.cmd(
+            'sb rule get --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname}'
+            ' --subscription-name {subscriptionname} --name {rulename}',
+            checks=[self.check('name', self.kwargs['rulename'])]).output
+
+        # Get Rules List By Subscription
+        listrulesnresult = self.cmd(
+            'sb rule list --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname}'
+            ' --subscription-name {subscriptionname}').output
+        self.assertGreater(len(listrulesnresult), 0)
 
         # Delete create Subscription
-        self.cmd('sb subscription delete --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname}'
-                 ' --name {subscriptionname}')
+        self.cmd(
+            'sb rule delete --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname}'
+            ' --subscription-name {subscriptionname} --name {rulename}')
+
+        # Delete create Subscription
+        self.cmd('sb subscription delete --resource-group {rg} --namespace-name {namespacename}'
+                 ' --topic-name {topicname} --name {subscriptionname}')
 
         # Delete Topic
         self.cmd('sb topic delete --resource-group {rg} --namespace-name {namespacename} --name {topicname}')

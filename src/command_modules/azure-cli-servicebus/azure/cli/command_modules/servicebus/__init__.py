@@ -14,7 +14,7 @@ class ServicebusCommandsLoader(AzCommandsLoader):
         from azure.cli.core.sdk.util import CliCommandType
         servicebus_custom = CliCommandType(operations_tmpl='azure.cli.command_modules.servicebus.custom#{}')
         super(ServicebusCommandsLoader, self).__init__(cli_ctx=cli_ctx, custom_command_type=servicebus_custom,
-                                                    min_profile="2017-03-10-profile")
+                                                       min_profile="2017-03-10-profile")
 
     def load_command_table(self, args):
         from azure.cli.command_modules.servicebus.commands import load_command_table

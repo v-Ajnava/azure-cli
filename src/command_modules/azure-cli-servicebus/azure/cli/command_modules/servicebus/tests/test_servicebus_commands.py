@@ -3,25 +3,12 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-# AZURE CLI VM TEST DEFINITIONS
-import json
+# AZURE CLI SERVICEBUS - NAMESAPCE TEST DEFINITIONS
 import os
-import platform
-import tempfile
-import time
-import unittest
-import mock
-import uuid
-
-import six
-
-from knack.util import CLIError
 
 from azure.cli.core.profiles import ResourceType
 from azure.cli.testsdk import (
-    ScenarioTest, ResourceGroupPreparer, LiveScenarioTest, api_version_constraint, StorageAccountPreparer)
-
-TEST_DIR = os.path.abspath(os.path.join(os.path.abspath(__file__), '..'))
+    ScenarioTest, ResourceGroupPreparer)
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-lines
@@ -45,58 +32,70 @@ class SBNamespaceCURDScenarioTest(ScenarioTest):
             'secondary': 'SecondaryKey'
         })
 
+        # Check for the NameSpace name Availability
+
+        checknamespaceresult = self.cmd('sb namespace check_name_availability --name {namespacename}',
+                                         checks=[self.check('nameAvailable', True)]).output
+
+
         # Create Namespace
-        createnamespaceresult = self.cmd('servicebus namespace create --resource-group {rg} --name {namespacename} '
-                          '--location {loc} --tags {tags} --sku-name {sku} --skutier {tier}',
+        createnamespaceresult = self.cmd('sb namespace create --resource-group {rg} --name {namespacename}'
+                          '--location {loc} --tags {tags} --sku-name {sku} --sku-tier {tier}',
                           checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
         # Get Created Namespace
-        getnamespaceresult = self.cmd('servicebus namespace get --resource-group {rg} --name {namespacename}',
+        getnamespaceresult = self.cmd('sb namespace get --resource-group {rg} --name {namespacename}',
                           checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
         # Get Created Namespace list by subscription
-        listnamespaceresult = self.cmd('servicebus namespace list').output
+        listnamespaceresult = self.cmd('sb namespace list').output
         self.assertGreater(len(listnamespaceresult), 0)
 
         # Get Created Namespace list by ResourceGroup
-        listnamespacebyresourcegroupresult = self.cmd('servicebus namespace list --resource-group {rg}').output
+        listnamespacebyresourcegroupresult = self.cmd('sb namespace list --resource-group {rg}').output
         self.assertGreater(len(listnamespacebyresourcegroupresult), 0)
 
         # Create Authoriazation Rule
-        # createauthorizationruleresult = self.cmd('servicebus namespace authorizationrule create --resource-group {rg} --namespace-name {namespacename} --name {authoname} --access-rights {accessrights}',
-        createauthorizationruleresult = self.cmd('servicebus namespace authorizationrule create --resource-group {rg} --namespace-name {namespacename} --name {authoname}',
-                          checks=[self.check('name', self.kwargs['authoname'])]).output
+        # createauthorizationruleresult = self.cmd('sb namespace authorizationrule create --resource-group {rg} --namespace-name {namespacename} --name {authoname} --access-rights {accessrights}',
+        createauthorizationruleresult = self.cmd('sb namespace authorizationrule create --resource-group {rg}'
+                                                 ' --namespace-name {namespacename} --name {authoname}',
+                                                 checks=[self.check('name', self.kwargs['authoname'])]).output
 
         # Get Create Authorization Rule
         getauthorizationruleresult = self.cmd(
-            'servicebus namespace authorizationrule get --resource-group {rg} --namespace-name {namespacename} --name {authoname}',
+            'sb namespace authorizationrule get --resource-group {rg} --namespace-name {namespacename} --name {authoname}',
             checks=[self.check('name', self.kwargs['authoname'])]).output
 
         # Get Default Authorization Rule
         getdefaultauthorizationruleresult = self.cmd(
-            'servicebus namespace authorizationrule get --resource-group {rg} --namespace-name {namespacename} --name {defaultauthorizationrule}',
-            checks=[self.check('name', self.kwargs['defaultauthorizationrule'])]).output
+            'sb namespace authorizationrule get --resource-group {rg} --namespace-name {namespacename}'
+            ' --name {defaultauthorizationrule}', checks=[self.check('name', self.kwargs['defaultauthorizationrule'])])\
+            .output
 
         # Get Authorization Rule Listkeys
         authorizationrulelistkeysresult = self.cmd(
-            'servicebus namespace authorizationrule listkeys --resource-group {rg} --namespace-name {namespacename} --name {authoname}').output
+            'sb namespace authorizationrule listkeys --resource-group {rg} --namespace-name {namespacename}'
+            ' --name {authoname}').output
 
         # Regeneratekeys - Primary
         regenrateprimarykeyresult = self.cmd(
-            'servicebus namespace authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename} --name {authoname} --regeneratekey {primary}').output
+            'sb namespace authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename}'
+            ' --name {authoname} --key {primary}').output
         self.assertIsNotNone(regenrateprimarykeyresult)
 
         # Regeneratekeys - Secondary
         regenratesecondarykeyresult = self.cmd(
-            'servicebus namespace authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename} --name {authoname} --regeneratekey {secondary}').output
+            'sb namespace authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename}'
+            ' --name {authoname} --key {secondary}').output
         self.assertIsNotNone(regenratesecondarykeyresult)
 
         # Delete AuthorizationRule
         deleteauthorizationruleresult = self.cmd(
-            'servicebus namespace authorizationrule delete --resource-group {rg} --namespace-name {namespacename} --name {authoname}').output
+            'sb namespace authorizationrule delete --resource-group {rg} --namespace-name {namespacename}'
+            ' --name {authoname}').output
 
         # Delete Namespace list by ResourceGroup
-        self.cmd('servicebus namespace delete --resource-group {rg} --name {namespacename}')
+        self.cmd('sb namespace delete --resource-group {rg} --name {namespacename}')
 
 
 

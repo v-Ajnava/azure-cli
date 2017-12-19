@@ -3,25 +3,9 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-# AZURE CLI VM TEST DEFINITIONS
-import json
-import os
-import platform
-import tempfile
-import time
-import unittest
-import mock
-import uuid
+# AZURE CLI TOPIC - SERVICEBUS DEFINITIONS
 
-import six
-
-from knack.util import CLIError
-
-from azure.cli.core.profiles import ResourceType
-from azure.cli.testsdk import (
-    ScenarioTest, ResourceGroupPreparer, LiveScenarioTest, api_version_constraint, StorageAccountPreparer)
-
-TEST_DIR = os.path.abspath(os.path.join(os.path.abspath(__file__), '..'))
+from azure.cli.testsdk import (ScenarioTest, ResourceGroupPreparer)
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-lines
@@ -50,18 +34,17 @@ class SBTopicsCURDScenarioTest(ScenarioTest):
         # Create Namespace
         createnamespaceresult = self.cmd(
             'servicebus namespace create --resource-group {rg} --name {namespacename} '
-                          '--location {loc} --tags {tags} --sku-name {sku} --skutier {tier}',
-                          checks=[self.check('sku.name', self.kwargs['sku'])]).output
+            '--location {loc} --tags {tags} --sku-name {sku} --sku-tier {tier}',
+            checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
         # Get Created Namespace
-        getnamespaceresult = self.cmd(
-            'servicebus namespace get --resource-group {rg} --name {namespacename}',
-                          checks=[self.check('sku.name', self.kwargs['sku'])]).output
+        getnamespaceresult = self.cmd('servicebus namespace get --resource-group {rg} --name {namespacename}',
+                                      checks=[self.check('sku.name', self.kwargs['sku'])]).output
 
         # Create Topic
         createtopicresult = self.cmd(
             'servicebus topic create --resource-group {rg} --namespace-name {namespacename} --name {topicname} ',
-                                     checks=[self.check('name', self.kwargs['topicname'])]).output
+            checks=[self.check('name', self.kwargs['topicname'])]).output
 
         # Get Topic
         gettopicresult = self.cmd(
@@ -75,31 +58,37 @@ class SBTopicsCURDScenarioTest(ScenarioTest):
         # Create Authoriazation Rule
         # createauthorizationruleresult = self.cmd('servicebus namespace authorizationrule create --resource-group {rg} --namespace-name {namespacename} --name {authoname} --access-rights {accessrights}',
         createauthorizationruleresult = self.cmd(
-            'servicebus topic authorizationrule create --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname} --name {authoname}',
+            'servicebus topic authorizationrule create --resource-group {rg} --namespace-name {namespacename}'
+            ' --topic-name {topicname} --name {authoname}',
                           checks=[self.check('name', self.kwargs['authoname'])]).output
 
         # Get Create Authorization Rule
         getauthorizationruleresult = self.cmd(
-            'servicebus topic authorizationrule get --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname} --name {authoname}',
+            'servicebus topic authorizationrule get --resource-group {rg} --namespace-name {namespacename}'
+            ' --topic-name {topicname} --name {authoname}',
             checks=[self.check('name', self.kwargs['authoname'])]).output
 
         # Get Authorization Rule Listkeys
         authorizationrulelistkeysresult = self.cmd(
-            'servicebus topic authorizationrule listkeys --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname} --name {authoname}').output
+            'servicebus topic authorizationrule listkeys --resource-group {rg} --namespace-name {namespacename}'
+            ' --topic-name {topicname} --name {authoname}').output
 
         # Regeneratekeys - Primary
         regenrateprimarykeyresult = self.cmd(
-            'servicebus topic authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname} --name {authoname} --regeneratekey {primary}').output
+            'servicebus topic authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename}'
+            ' --topic-name {topicname} --name {authoname} --key {primary}').output
         self.assertIsNotNone(regenrateprimarykeyresult)
 
         # Regeneratekeys - Secondary
         regenratesecondarykeyresult = self.cmd(
-            'servicebus topic authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname} --name {authoname} --regeneratekey {secondary}').output
+            'servicebus topic authorizationrule regeneratekeys --resource-group {rg} --namespace-name {namespacename}'
+            ' --topic-name {topicname} --name {authoname} --key {secondary}').output
         self.assertIsNotNone(regenratesecondarykeyresult)
 
         # Delete Topic AuthorizationRule
         deleteauthorizationruleresult = self.cmd(
-            'servicebus topic authorizationrule delete --resource-group {rg} --namespace-name {namespacename} --topic-name {topicname} --name {authoname}').output
+            'servicebus topic authorizationrule delete --resource-group {rg} --namespace-name {namespacename}'
+            ' --topic-name {topicname} --name {authoname}').output
 
         # Delete Topic
         self.cmd('servicebus topic delete --resource-group {rg} --namespace-name {namespacename} --name {topicname}')

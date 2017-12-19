@@ -38,13 +38,13 @@ def premium_messaging_mgmt_client_factory(cli_ctx, _):
     return cf_servicebus(cli_ctx).premium_messaging
 
 
-def disaster_recovery_mgmt_client_factory(cli_ctx, _):
-    return cf_servicebus(cli_ctx).disaster_recovery
-
-
 def event_subscriptions_mgmt_client_factory(cli_ctx, _):
     return cf_servicebus(cli_ctx).event_subscriptions
 
 
 def event_hubs_mgmt_client_factory(cli_ctx, _):
     return cf_servicebus(cli_ctx).event_hubs
+
+
+def disaster_recovery_mgmt_client_factory(cli_ctx, _):
+    return cf_servicebus(cli_ctx).disaster_recovery_configs

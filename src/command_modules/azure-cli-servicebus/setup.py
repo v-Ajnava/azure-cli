@@ -33,8 +33,9 @@ CLASSIFIERS = [
 ]
 
 DEPENDENCIES = [
-    'azure-mgmt-servicebus==0.3.1 ',
-    'azure-cli-core'
+    'azure-mgmt-servicebus==0.4.0 ',
+    'azure-cli-core',
+    'isodate==0.6.0'
 ]
 
 with open('README.rst', 'r', encoding='utf-8') as f:
