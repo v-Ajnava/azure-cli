@@ -32,7 +32,7 @@ class CheckerMixin(object):
     def _apply_kwargs(self, val):
         try:
             return val.format(**self.kwargs)
-        except Exception as ex:
+        except Exception:  # pylint: disable=broad-except
             return val
 
     def check(self, query, expected_results):
@@ -52,7 +52,13 @@ class CheckerMixin(object):
         expected_results = self._apply_kwargs(expected_results)
         return JMESPathCheckGreaterThan(query, expected_results)
 
-    def is_empty(self):
+    def check_pattern(self, query, expected_results):
+        from azure.cli.testsdk.checkers import JMESPathPatternCheck
+        query = self._apply_kwargs(query)
+        expected_results = self._apply_kwargs(expected_results)
+        return JMESPathPatternCheck(query, expected_results)
+
+    def is_empty(self):  # pylint: disable=no-self-use
         from azure.cli.testsdk.checkers import NoneCheck
         return NoneCheck()
 
@@ -64,32 +70,49 @@ class ScenarioTest(ReplayableTest, CheckerMixin, unittest.TestCase):
         self.cli_ctx = TestCli()
         self.name_replacer = GeneralNameReplacer()
         self.kwargs = {}
+
+        default_recording_processors = [
+            SubscriptionRecordingProcessor(MOCKED_SUBSCRIPTION_ID),
+            OAuthRequestResponsesFilter(),
+            LargeRequestBodyProcessor(),
+            LargeResponseBodyProcessor(),
+            DeploymentNameReplacer(),
+            RequestUrlNormalizer(),
+            self.name_replacer
+        ]
+
+        default_replay_processors = [
+            LargeResponseBodyReplacer(),
+            DeploymentNameReplacer(),
+            RequestUrlNormalizer(),
+        ]
+
+        default_recording_patches = [patch_main_exception_handler]
+
+        default_replay_patches = [
+            patch_main_exception_handler,
+            patch_time_sleep_api,
+            patch_long_run_operation_delay,
+            patch_load_cached_subscriptions,
+            patch_retrieve_token_for_user,
+            patch_progress_controller,
+        ]
+
+        def _merge_lists(base, patches):
+            merged = list(base)
+            if patches and not isinstance(patches, list):
+                patches = [patches]
+            if patches:
+                merged = list(set(merged).union(set(patches)))
+            return merged
+
         super(ScenarioTest, self).__init__(
             method_name,
             config_file=config_file,
-            recording_processors=recording_processors or [
-                SubscriptionRecordingProcessor(MOCKED_SUBSCRIPTION_ID),
-                OAuthRequestResponsesFilter(),
-                LargeRequestBodyProcessor(),
-                LargeResponseBodyProcessor(),
-                DeploymentNameReplacer(),
-                RequestUrlNormalizer(),
-                self.name_replacer,
-            ],
-            replay_processors=replay_processors or [
-                LargeResponseBodyReplacer(),
-                DeploymentNameReplacer(),
-                RequestUrlNormalizer(),
-            ],
-            recording_patches=recording_patches or [patch_main_exception_handler],
-            replay_patches=replay_patches or [
-                patch_main_exception_handler,
-                patch_time_sleep_api,
-                patch_long_run_operation_delay,
-                patch_load_cached_subscriptions,
-                patch_retrieve_token_for_user,
-                patch_progress_controller,
-            ],
+            recording_processors=_merge_lists(default_recording_processors, recording_processors),
+            replay_processors=_merge_lists(default_replay_processors, replay_processors),
+            recording_patches=_merge_lists(default_recording_patches, recording_patches),
+            replay_patches=_merge_lists(default_replay_patches, replay_patches),
             recording_dir=find_recording_dir(self.cli_ctx, inspect.getfile(self.__class__)),
             recording_name=recording_name
         )
@@ -108,7 +131,7 @@ class ScenarioTest(ReplayableTest, CheckerMixin, unittest.TestCase):
     def cmd(self, command, checks=None, expect_failure=False):
         try:
             command = command.format(**self.kwargs)
-        except KeyError as ex:
+        except KeyError:
             pass
         return execute(self.cli_ctx, command, expect_failure=expect_failure).assert_with_checks(checks)
 
@@ -132,7 +155,7 @@ class LiveScenarioTest(IntegrationTestBase, CheckerMixin, unittest.TestCase):
     def cmd(self, command, checks=None, expect_failure=False):
         try:
             command = command.format(**self.kwargs)
-        except KeyError as ex:
+        except KeyError:
             pass
         return execute(self.cli_ctx, command, expect_failure=expect_failure).assert_with_checks(checks)
 
@@ -148,7 +171,7 @@ class ExecutionResult(object):
         if in_process:
             self._in_process_execute(cli_ctx, command, expect_failure=expect_failure)
         else:
-            self._out_of_process_execute(cli_ctx, command)
+            self._out_of_process_execute(command)
 
         if expect_failure and self.exit_code == 0:
             logger.error('Command "%s" => %d. (It did not fail as expected) Output: %s. %s', command,

@@ -4,13 +4,14 @@
 # --------------------------------------------------------------------------------------------
 
 import os
-from azure.cli.core import __version__ as core_version
-import azure.cli.core._debug as _debug
-from azure.cli.core.profiles._shared import get_client_class
-from azure.cli.core.profiles import ResourceType, get_api_version, get_sdk
 
 from knack.log import get_logger
 from knack.util import CLIError
+
+from azure.cli.core import __version__ as core_version
+import azure.cli.core._debug as _debug
+from azure.cli.core.profiles._shared import get_client_class, SDKProfile
+from azure.cli.core.profiles import ResourceType, get_api_version, get_sdk
 
 logger = get_logger(__name__)
 UA_AGENT = "AZURECLI/{}".format(core_version)
@@ -19,15 +20,19 @@ ENV_ADDITIONAL_USER_AGENT = 'AZURE_HTTP_USER_AGENT'
 
 def get_mgmt_service_client(cli_ctx, client_or_resource_type, subscription_id=None, api_version=None,
                             **kwargs):
+    sdk_profile = None
     if isinstance(client_or_resource_type, ResourceType):
         # Get the versioned client
         client_type = get_client_class(client_or_resource_type)
-        api_version = api_version or get_api_version(cli_ctx, client_or_resource_type)
+        api_version = api_version or get_api_version(cli_ctx, client_or_resource_type, as_sdk_profile=True)
+        if isinstance(api_version, SDKProfile):
+            sdk_profile = api_version.profile
+            api_version = api_version.default_api_version
     else:
         # Get the non-versioned client
         client_type = client_or_resource_type
     client, _ = _get_mgmt_service_client(cli_ctx, client_type, subscription_id=subscription_id,
-                                         api_version=api_version, **kwargs)
+                                         api_version=api_version, sdk_profile=sdk_profile, **kwargs)
     return client
 
 
@@ -71,11 +76,12 @@ def _get_mgmt_service_client(cli_ctx,
                              api_version=None,
                              base_url_bound=True,
                              resource=None,
+                             sdk_profile=None,
                              **kwargs):
     from azure.cli.core._profile import Profile
     logger.debug('Getting management service client client_type=%s', client_type.__name__)
     resource = resource or cli_ctx.cloud.endpoints.active_directory_resource_id
-    profile = Profile(cli_ctx)
+    profile = Profile(cli_ctx=cli_ctx)
     cred, subscription_id, _ = profile.get_login_credentials(subscription_id=subscription_id, resource=resource)
 
     client_kwargs = {}
@@ -83,6 +89,8 @@ def _get_mgmt_service_client(cli_ctx,
         client_kwargs = {'base_url': cli_ctx.cloud.endpoints.resource_manager}
     if api_version:
         client_kwargs['api_version'] = api_version
+    if sdk_profile:
+        client_kwargs['profile'] = sdk_profile
     if kwargs:
         client_kwargs.update(kwargs)
 
@@ -93,7 +101,7 @@ def _get_mgmt_service_client(cli_ctx,
 
     configure_common_settings(cli_ctx, client)
 
-    return (client, subscription_id)
+    return client, subscription_id
 
 
 def get_data_service_client(cli_ctx, service_type, account_name, account_key, connection_string=None,
@@ -121,7 +129,7 @@ def get_data_service_client(cli_ctx, service_type, account_name, account_key, co
 
 def get_subscription_id(cli_ctx):
     from azure.cli.core._profile import Profile
-    _, subscription_id, _ = Profile(cli_ctx).get_login_credentials()
+    _, subscription_id, _ = Profile(cli_ctx=cli_ctx).get_login_credentials()
     return subscription_id
 
 

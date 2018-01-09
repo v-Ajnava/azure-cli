@@ -3,6 +3,15 @@
 Release History
 ===============
 
+2.0.18
+++++++
+* Update for CLI core changes.
+
+
+2.0.17
+++++++
+* Update managed storage SDK dependency
+
 2.0.16
 ++++++
 * Documentation fixes.

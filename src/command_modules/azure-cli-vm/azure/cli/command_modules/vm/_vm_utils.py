@@ -12,6 +12,9 @@ from knack.util import CLIError
 logger = get_logger(__name__)
 
 
+MSI_LOCAL_ID = '[system]'
+
+
 def read_content_if_is_file(string_or_file):
     content = string_or_file
     if os.path.exists(string_or_file):
@@ -83,7 +86,7 @@ def create_keyvault_data_plane_client(cli_ctx):
     from azure.cli.core._profile import Profile
 
     def get_token(server, resource, scope):  # pylint: disable=unused-argument
-        return Profile(cli_ctx).get_login_credentials(resource)[0]._token_retriever()  # pylint: disable=protected-access
+        return Profile(cli_ctx=cli_ctx).get_login_credentials(resource)[0]._token_retriever()  # pylint: disable=protected-access
 
     from azure.keyvault import KeyVaultClient, KeyVaultAuthentication
     return KeyVaultClient(KeyVaultAuthentication(get_token))

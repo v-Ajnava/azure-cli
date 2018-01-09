@@ -187,7 +187,7 @@ def _user_agrees_to_telemetry(func):
     @wraps(func)
     def _wrapper(*args, **kwargs):
         if not _get_config().getboolean('core', 'collect_telemetry', fallback=True):
-            return
+            return None
         return func(*args, **kwargs)
 
     return _wrapper
@@ -292,7 +292,7 @@ def _get_installation_id():
 @decorators.suppress_all_exceptions(fallback_return=None)
 def _get_profile():
     from azure.cli.core._profile import Profile
-    return Profile(_session.application)
+    return Profile(cli_ctx=_session.application)
 
 
 @decorators.suppress_all_exceptions(fallback_return='')

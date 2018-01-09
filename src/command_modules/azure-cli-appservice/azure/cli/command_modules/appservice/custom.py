@@ -12,6 +12,11 @@ except ImportError:
 from binascii import hexlify
 from os import urandom
 import OpenSSL.crypto
+
+from knack.prompting import prompt_pass, NoTTYException
+from knack.util import CLIError
+from knack.log import get_logger
+
 from msrestazure.azure_exceptions import CloudError
 from msrestazure.tools import is_valid_resource_id, parse_resource_id
 
@@ -24,10 +29,6 @@ from azure.mgmt.web.models import (Site, SiteConfig, User, AppServicePlan, SiteC
 
 from azure.cli.core.commands.client_factory import get_mgmt_service_client
 from azure.cli.core.commands import LongRunningOperation
-
-from knack.prompting import prompt_pass, NoTTYException
-from knack.util import CLIError
-from knack.log import get_logger
 
 from .vsts_cd_provider import VstsContinuousDeliveryProvider
 from ._params import AUTH_TYPES
@@ -163,8 +164,8 @@ def assign_identity(cmd, resource_group_name, name, role='Contributor', scope=No
         poller = client.web_apps.create_or_update(resource_group_name, name, webapp)
         return LongRunningOperation(cmd.cli_ctx)(poller)
 
-    from azure.cli.core.commands.arm import assign_implict_identity
-    webapp = assign_implict_identity(cmd.cli_ctx, getter, setter, role, scope)
+    from azure.cli.core.commands.arm import assign_identity as _assign_identity
+    webapp = _assign_identity(cmd.cli_ctx, getter, setter, role, scope)
     update_app_settings(cmd, resource_group_name, name, ['WEBSITE_DISABLE_MSI={}'.format(disable_msi)])
     return webapp.identity
 
@@ -899,6 +900,7 @@ def restore_backup(cmd, resource_group_name, webapp_name, storage_account_url, b
     return client.web_apps.restore(resource_group_name, webapp_name, 0, restore_request)
 
 
+# pylint: disable=inconsistent-return-statements
 def _create_db_setting(db_name, db_type, db_connection_string):
     if all([db_name, db_type, db_connection_string]):
         return [DatabaseBackupSetting(db_type, db_name, connection_string=db_connection_string)]

@@ -7,12 +7,12 @@ import os
 from pprint import pformat
 from six.moves import configparser
 
-from azure.cli.core.profiles import API_PROFILES
-from azure.cli.core._config import GLOBAL_CONFIG_DIR
-
 from knack.log import get_logger
 from knack.util import CLIError
 from knack.config import get_config_parser
+
+from azure.cli.core.profiles import API_PROFILES
+from azure.cli.core._config import GLOBAL_CONFIG_DIR
 
 logger = get_logger(__name__)
 
@@ -236,6 +236,10 @@ def _get_cloud(cli_ctx, cloud_name):
     return next((x for x in get_clouds(cli_ctx) if x.name == cloud_name), None)
 
 
+def cloud_is_registered(cli_ctx, cloud_name):
+    return bool(_get_cloud(cli_ctx, cloud_name))
+
+
 def get_custom_clouds(cli_ctx):
     known_cloud_names = [c.name for c in KNOWN_CLOUDS]
     return [c for c in get_clouds(cli_ctx) if c.name not in known_cloud_names]
@@ -282,7 +286,10 @@ def get_cloud(cli_ctx, cloud_name):
     return cloud
 
 
-def get_active_cloud(cli_ctx):
+def get_active_cloud(cli_ctx=None):
+    if not cli_ctx:
+        from azure.cli.core import get_default_cli
+        cli_ctx = get_default_cli()
     try:
         return get_cloud(cli_ctx, get_active_cloud_name(cli_ctx))
     except CloudNotRegisteredException as err:
@@ -326,7 +333,7 @@ def set_cloud_subscription(cli_ctx, cloud_name, subscription):
 def _set_active_subscription(cli_ctx, cloud_name):
     from azure.cli.core._profile import (Profile, _ENVIRONMENT_NAME, _SUBSCRIPTION_ID,
                                          _STATE, _SUBSCRIPTION_NAME)
-    profile = Profile(cli_ctx)
+    profile = Profile(cli_ctx=cli_ctx)
     subscription_to_use = get_cloud_subscription(cloud_name) or \
                           next((s[_SUBSCRIPTION_ID] for s in profile.load_cached_subscriptions()  # noqa
                                 if s[_STATE] == 'Enabled'),

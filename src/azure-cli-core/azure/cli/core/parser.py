@@ -8,11 +8,12 @@ import sys
 import argparse
 import argcomplete
 
-import azure.cli.core.telemetry as telemetry
-
 from knack.log import get_logger
 from knack.parser import CLICommandParser
 from knack.util import CLIError
+
+import azure.cli.core.telemetry as telemetry
+
 
 logger = get_logger(__name__)
 
@@ -37,7 +38,6 @@ class AzCliCommandParser(CLICommandParser):
         self.command_source = kwargs.pop('_command_source', None)
         super(AzCliCommandParser, self).__init__(cli_ctx, cli_help=cli_help, **kwargs)
 
-    # TODO: If not for _command_source this would not need to be overridden with 99% same implementation
     def load_command_table(self, cmd_tbl):
         """Load a command table into our parser."""
         # If we haven't already added a subparser, we
@@ -69,20 +69,24 @@ class AzCliCommandParser(CLICommandParser):
             command_validator = metadata.validator
             argument_validators = []
             argument_groups = {}
-            for arg_name, arg in metadata.arguments.items():
+            for _, arg in metadata.arguments.items():
                 if arg.validator:
                     argument_validators.append(arg.validator)
-                if arg.arg_group:
-                    try:
-                        group = argument_groups[arg.arg_group]
-                    except KeyError:
-                        # group not found so create
-                        group_name = '{} Arguments'.format(arg.arg_group)
-                        group = command_parser.add_argument_group(arg.arg_group, group_name)
-                        argument_groups[arg.arg_group] = group
-                    param = CLICommandParser._add_argument(group, arg)
-                else:
-                    param = CLICommandParser._add_argument(command_parser, arg)
+                try:
+                    if arg.arg_group:
+                        try:
+                            group = argument_groups[arg.arg_group]
+                        except KeyError:
+                            # group not found so create
+                            group_name = '{} Arguments'.format(arg.arg_group)
+                            group = command_parser.add_argument_group(arg.arg_group, group_name)
+                            argument_groups[arg.arg_group] = group
+                        param = CLICommandParser._add_argument(group, arg)
+                    else:
+                        param = CLICommandParser._add_argument(command_parser, arg)
+                except argparse.ArgumentError as ex:
+                    raise CLIError("command authoring error for '{}': '{}' {}".format(
+                        command_name, ex.args[0].dest, ex.message))  # pylint: disable=no-member
                 param.completer = arg.completer
 
             command_parser.set_defaults(

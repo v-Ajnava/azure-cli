@@ -48,12 +48,6 @@
     <Compile Include="azure-cli-core\azure\cli\core\profiles\_shared.py" />
     <Compile Include="azure-cli-core\azure\cli\core\profiles\__init__.py" />
     <Compile Include="azure-cli-core\azure\cli\core\profiles\__init__.py" />
-    <Compile Include="azure-cli-core\azure\cli\core\sdk\util.py" />
-    <Compile Include="azure-cli-core\azure\cli\core\sdk\util.py" />
-    <Compile Include="azure-cli-core\azure\cli\core\sdk\validators.py" />
-    <Compile Include="azure-cli-core\azure\cli\core\sdk\validators.py" />
-    <Compile Include="azure-cli-core\azure\cli\core\sdk\__init__.py" />
-    <Compile Include="azure-cli-core\azure\cli\core\sdk\__init__.py" />
     <Compile Include="azure-cli-core\azure\cli\core\telemetry_upload.py" />
     <Compile Include="azure-cli-core\azure\cli\core\tests\test_add_resourcegroup_transform.py" />
     <Compile Include="azure-cli-core\azure\cli\core\tests\test_api_profiles.py" />
@@ -95,7 +89,6 @@
     <Compile Include="azure-cli-testsdk\azure\cli\testsdk\patches.py" />
     <Compile Include="azure-cli-testsdk\azure\cli\testsdk\preparers.py" />
     <Compile Include="azure-cli-testsdk\azure\cli\testsdk\utilities.py" />
-    <Compile Include="azure-cli-testsdk\azure\cli\testsdk\vcr_test_base.py" />
     <Compile Include="azure-cli-testsdk\azure\cli\testsdk\__init__.py" />
     <Compile Include="azure-cli-testsdk\setup.py" />
     <Compile Include="azure-cli\azure\cli\__init__.py" />
@@ -111,7 +104,6 @@
     <Compile Include="command_modules\azure-cli-acr\azure\cli\command_modules\acr\webhook.py" />
     <Compile Include="command_modules\azure-cli-acr\azure\cli\command_modules\acr\_constants.py" />
     <Compile Include="command_modules\azure-cli-acr\azure\cli\command_modules\acr\_docker_utils.py" />
-    <Compile Include="command_modules\azure-cli-acr\azure\cli\command_modules\acr\_factory.py" />
     <Compile Include="command_modules\azure-cli-acr\azure\cli\command_modules\acr\_format.py" />
     <Compile Include="command_modules\azure-cli-acr\azure\cli\command_modules\acr\_help.py" />
     <Compile Include="command_modules\azure-cli-acr\azure\cli\command_modules\acr\_params.py" />
@@ -129,20 +121,32 @@
     <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\tests\test_custom.py" />
     <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\tests\test_service_principals.py" />
     <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\win_proxy.py" />
-    <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\_actions.py" />
     <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\_client_factory.py" />
+    <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\_completers.py" />
+    <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\_format.py" />
     <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\_help.py" />
     <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\_params.py" />
     <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\_validators.py" />
     <Compile Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\__init__.py" />
     <Compile Include="command_modules\azure-cli-acs\azure_bdist_wheel.py" />
     <Compile Include="command_modules\azure-cli-acs\setup.py" />
+    <Compile Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\commands.py" />
+    <Compile Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\custom.py" />
+    <Compile Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\tests\test_advisor_commands.py" />
+    <Compile Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\tests\__init__.py" />
+    <Compile Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\_client_factory.py" />
+    <Compile Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\_help.py" />
+    <Compile Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\_params.py" />
+    <Compile Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\__init__.py" />
+    <Compile Include="command_modules\azure-cli-advisor\setup.py" />
     <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\commands.py" />
     <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\custom.py" />
     <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\tests\test_webapp_commands.py" />
     <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\tests\test_webapp_commands_thru_mock.py" />
     <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\vsts_cd_provider.py" />
+    <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\_appservice_utils.py" />
     <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\_client_factory.py" />
+    <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\_completers.py" />
     <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\_help.py" />
     <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\_params.py" />
     <Compile Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\_validators.py">
@@ -155,6 +159,9 @@
     <Compile Include="command_modules\azure-cli-backup\azure\cli\command_modules\backup\custom.py" />
     <Compile Include="command_modules\azure-cli-backup\azure\cli\command_modules\backup\tests\preparers.py" />
     <Compile Include="command_modules\azure-cli-backup\azure\cli\command_modules\backup\tests\test_backup_commands.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="command_modules\azure-cli-backup\azure\cli\command_modules\backup\_format.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="command_modules\azure-cli-backup\azure\cli\command_modules\backup\_client_factory.py" />
@@ -210,6 +217,9 @@
     <Compile Include="command_modules\azure-cli-billing\azure_bdist_wheel.py" />
     <Compile Include="command_modules\azure-cli-billing\setup.py" />
     <Compile Include="command_modules\azure-cli-cloud\azure\cli\command_modules\cloud\custom.py" />
+    <Compile Include="command_modules\azure-cli-cloud\azure\cli\command_modules\cloud\_completers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_modules\azure-cli-cloud\azure\cli\command_modules\cloud\_help.py" />
     <Compile Include="command_modules\azure-cli-cloud\azure\cli\command_modules\cloud\__init__.py" />
     <Compile Include="command_modules\azure-cli-cloud\azure_bdist_wheel.py" />
@@ -257,6 +267,9 @@
     <Compile Include="command_modules\azure-cli-cosmosdb\azure\cli\command_modules\cosmosdb\_exception_handler.py" />
     <Compile Include="command_modules\azure-cli-cosmosdb\azure\cli\command_modules\cosmosdb\_help.py" />
     <Compile Include="command_modules\azure-cli-cosmosdb\azure\cli\command_modules\cosmosdb\_params.py" />
+    <Compile Include="command_modules\azure-cli-cosmosdb\azure\cli\command_modules\cosmosdb\_validators.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_modules\azure-cli-cosmosdb\azure\cli\command_modules\cosmosdb\__init__.py" />
     <Compile Include="command_modules\azure-cli-cosmosdb\setup.py" />
     <Compile Include="command_modules\azure-cli-consumption\azure\cli\command_modules\consumption\commands.py" />
@@ -314,8 +327,13 @@
     <Compile Include="command_modules\azure-cli-extension\azure\cli\command_modules\extension\tests\test_extension_commands.py" />
     <Compile Include="command_modules\azure-cli-extension\azure\cli\command_modules\extension\tests\test_index_get.py" />
     <Compile Include="command_modules\azure-cli-extension\azure\cli\command_modules\extension\tests\test_resolve.py" />
+    <Compile Include="command_modules\azure-cli-extension\azure\cli\command_modules\extension\_completers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_modules\azure-cli-extension\azure\cli\command_modules\extension\_help.py" />
     <Compile Include="command_modules\azure-cli-extension\azure\cli\command_modules\extension\_homebrew_patch.py" />
+    <Compile Include="command_modules\azure-cli-extension\azure\cli\command_modules\extension\_index.py" />
+    <Compile Include="command_modules\azure-cli-extension\azure\cli\command_modules\extension\_resolve.py" />
     <Compile Include="command_modules\azure-cli-extension\azure\cli\command_modules\extension\__init__.py" />
     <Compile Include="command_modules\azure-cli-extension\setup.py" />
     <Compile Include="command_modules\azure-cli-feedback\azure\cli\command_modules\feedback\custom.py" />
@@ -380,10 +398,12 @@
     <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\sas_token_auth.py" />
     <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\tests\test_iot_certificate_commands.py" />
     <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\tests\test_iot_commands.py" />
+    <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\tests\test_iot_dps_commands.py" />
     <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\tests\test_sas_token_auth.py" />
     <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\tests\_test_utils.py" />
+    <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\_client_factory.py" />
+    <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\_completers.py" />
     <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\_constants.py" />
-    <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\_factory.py" />
     <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\_help.py" />
     <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\_params.py" />
     <Compile Include="command_modules\azure-cli-iot\azure\cli\command_modules\iot\_utils.py" />
@@ -396,6 +416,9 @@
     <Compile Include="command_modules\azure-cli-keyvault\azure\cli\command_modules\keyvault\tests\test_keyvault_commands.py" />
     <Compile Include="command_modules\azure-cli-keyvault\azure\cli\command_modules\keyvault\_client_factory.py" />
     <Compile Include="command_modules\azure-cli-keyvault\azure\cli\command_modules\keyvault\_command_type.py" />
+    <Compile Include="command_modules\azure-cli-keyvault\azure\cli\command_modules\keyvault\_completers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_modules\azure-cli-keyvault\azure\cli\command_modules\keyvault\_help.py" />
     <Compile Include="command_modules\azure-cli-keyvault\azure\cli\command_modules\keyvault\_params.py" />
     <Compile Include="command_modules\azure-cli-keyvault\azure\cli\command_modules\keyvault\_validators.py" />
@@ -421,17 +444,24 @@
     <Compile Include="command_modules\azure-cli-lab\azure\cli\command_modules\lab\__init__.py" />
     <Compile Include="command_modules\azure-cli-lab\azure_bdist_wheel.py" />
     <Compile Include="command_modules\azure-cli-lab\setup.py" />
-    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\actions.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\action_groups.py" />
-    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\activity_log_alerts.py" />
     <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\commands.py" />
-    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\custom.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\actions.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\action_groups.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\activity_log.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\activity_log_alerts.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\autoscale_settings.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\diagnostics_settings.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\metric_alert.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\__init__.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\test_activity_log_components.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\test_activity_log_scenario.py" />
     <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\test_custom.py" />
     <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\test_monitor.py" />
     <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\test_monitor_action_groups.py" />
     <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\test_monitor_activity_log_alert.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\test_monitor_metrics.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\test_monitor_metric_alert_scenarios.py" />
+    <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\test_monitor_unittest.py" />
     <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\transformers.py" />
     <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\util.py" />
     <Compile Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\_exception_handler.py">
@@ -454,6 +484,9 @@
     <Compile Include="command_modules\azure-cli-network\azure\cli\command_modules\network\zone_file\record_processors.py" />
     <Compile Include="command_modules\azure-cli-network\azure\cli\command_modules\network\zone_file\__init__.py" />
     <Compile Include="command_modules\azure-cli-network\azure\cli\command_modules\network\_client_factory.py" />
+    <Compile Include="command_modules\azure-cli-network\azure\cli\command_modules\network\_completers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_modules\azure-cli-network\azure\cli\command_modules\network\_format.py" />
     <Compile Include="command_modules\azure-cli-network\azure\cli\command_modules\network\_help.py">
       <SubType>Code</SubType>
@@ -468,6 +501,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="command_modules\azure-cli-profile\azure_bdist_wheel.py" />
+    <Compile Include="command_modules\azure-cli-profile\azure\cli\command_modules\profile\_completers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_modules\azure-cli-rdbms\azure\cli\command_modules\rdbms\tests\test_rdbms_commands.py" />
     <Compile Include="command_modules\azure-cli-rdbms\azure\cli\command_modules\rdbms\_help.py" />
     <Compile Include="command_modules\azure-cli-rdbms\azure\cli\command_modules\rdbms\_params.py" />
@@ -500,6 +536,9 @@
     <Compile Include="command_modules\azure-cli-resource\azure\cli\command_modules\resource\tests\test_resource_list_odata_filter.py" />
     <Compile Include="command_modules\azure-cli-resource\azure\cli\command_modules\resource\tests\test_resource_validators.py" />
     <Compile Include="command_modules\azure-cli-resource\azure\cli\command_modules\resource\_client_factory.py" />
+    <Compile Include="command_modules\azure-cli-resource\azure\cli\command_modules\resource\_completers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_modules\azure-cli-resource\azure\cli\command_modules\resource\_help.py">
       <SubType>Code</SubType>
     </Compile>
@@ -510,6 +549,9 @@
     <Compile Include="command_modules\azure-cli-role\azure\cli\command_modules\role\tests\test_role.py" />
     <Compile Include="command_modules\azure-cli-role\azure\cli\command_modules\role\tests\test_role_commands_thru_mock.py" />
     <Compile Include="command_modules\azure-cli-role\azure\cli\command_modules\role\_client_factory.py" />
+    <Compile Include="command_modules\azure-cli-role\azure\cli\command_modules\role\_completers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_modules\azure-cli-role\azure\cli\command_modules\role\_help.py">
       <SubType>Code</SubType>
     </Compile>
@@ -521,7 +563,6 @@
     <Compile Include="command_modules\azure-cli-servicefabric\azure\cli\command_modules\servicefabric\_client_factory.py" />
     <Compile Include="command_modules\azure-cli-servicefabric\azure\cli\command_modules\servicefabric\_help.py" />
     <Compile Include="command_modules\azure-cli-servicefabric\azure\cli\command_modules\servicefabric\_params.py" />
-    <Compile Include="command_modules\azure-cli-servicefabric\azure\cli\command_modules\servicefabric\_validators.py" />
     <Compile Include="command_modules\azure-cli-servicefabric\azure\cli\command_modules\servicefabric\__init__.py" />
     <Compile Include="command_modules\azure-cli-servicefabric\setup.py" />
     <Compile Include="command_modules\azure-cli-sql\azure\cli\command_modules\sql\commands.py" />
@@ -530,6 +571,9 @@
     <Compile Include="command_modules\azure-cli-sql\azure\cli\command_modules\sql\_help.py" />
     <Compile Include="command_modules\azure-cli-sql\azure\cli\command_modules\sql\_params.py" />
     <Compile Include="command_modules\azure-cli-sql\azure\cli\command_modules\sql\_util.py" />
+    <Compile Include="command_modules\azure-cli-sql\azure\cli\command_modules\sql\_validators.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_modules\azure-cli-sql\azure\cli\command_modules\sql\__init__.py" />
     <Compile Include="command_modules\azure-cli-sql\azure_bdist_wheel.py" />
     <Compile Include="command_modules\azure-cli-sql\setup.py" />
@@ -540,8 +584,16 @@
     <Compile Include="command_modules\azure-cli-rdbms\azure\cli\command_modules\rdbms\__init__.py" />
     <Compile Include="command_modules\azure-cli-rdbms\azure_bdist_wheel.py" />
     <Compile Include="command_modules\azure-cli-rdbms\setup.py" />
-    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\blob.py" />
-    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\file.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\account.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\acl.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\blob.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\cors.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\directory.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\file.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\logging.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\metrics.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\table.py" />
+    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\__init__.py" />
     <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\sdkutil.py" />
     <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\services_wrapper.py" />
     <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\storage_url_helpers.py" />
@@ -561,7 +613,6 @@
     <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\tests\test_storage_validators.py" />
     <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\url_quote_util.py" />
     <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\util.py" />
-    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\_command_type.py" />
     <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\_client_factory.py" />
     <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\_format.py">
       <SubType>Code</SubType>
@@ -579,9 +630,6 @@
     <Compile Include="command_modules\azure-cli-profile\azure\cli\command_modules\profile\custom.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="command_modules\azure-cli-profile\azure\cli\command_modules\profile\_params.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="command_modules\azure-cli-resource\azure\cli\command_modules\resource\custom.py" />
     <Compile Include="command_modules\azure-cli-resource\azure\cli\command_modules\resource\commands.py" />
     <Compile Include="command_modules\azure-cli-resource\azure\cli\command_modules\resource\_params.py" />
@@ -592,9 +640,6 @@
     <Compile Include="command_modules\azure-cli-role\azure\cli\command_modules\role\_params.py" />
     <Compile Include="command_modules\azure-cli-role\azure\cli\command_modules\role\__init__.py" />
     <Compile Include="command_modules\azure-cli-role\setup.py" />
-    <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\custom.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\commands.py">
       <SubType>Code</SubType>
     </Compile>
@@ -651,7 +696,6 @@
     <Folder Include="azure-cli-core\azure\cli\core\commands\" />
     <Folder Include="azure-cli-core\azure\cli\core\extensions\" />
     <Folder Include="azure-cli-core\azure\cli\core\profiles\" />
-    <Folder Include="azure-cli-core\azure\cli\core\sdk\" />
     <Folder Include="azure-cli-core\azure\cli\core\tests\" />
     <Folder Include="azure-cli-nspkg\" />
     <Folder Include="azure-cli-nspkg\azure\" />
@@ -677,6 +721,14 @@
     <Folder Include="command_modules\azure-cli-acs\azure\cli\command_modules\" />
     <Folder Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\" />
     <Folder Include="command_modules\azure-cli-acs\azure\cli\command_modules\acs\tests\" />
+    <Folder Include="command_modules\azure-cli-advisor\" />
+    <Folder Include="command_modules\azure-cli-advisor\azure\" />
+    <Folder Include="command_modules\azure-cli-advisor\azure\cli\" />
+    <Folder Include="command_modules\azure-cli-advisor\azure\cli\command_modules\" />
+    <Folder Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\" />
+    <Folder Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\tests\" />
+    <Folder Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\tests\recordings\" />
+    <Folder Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\tests\recordings\latest\" />
     <Folder Include="command_modules\azure-cli-appservice\" />
     <Folder Include="command_modules\azure-cli-appservice\azure\" />
     <Folder Include="command_modules\azure-cli-appservice\azure\cli\" />
@@ -825,6 +877,7 @@
     <Folder Include="command_modules\azure-cli-monitor\azure\cli\" />
     <Folder Include="command_modules\azure-cli-monitor\azure\cli\command_modules\" />
     <Folder Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\" />
+    <Folder Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\" />
     <Folder Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\tests\" />
     <Folder Include="command_modules\azure-cli-network\azure\cli\command_modules\network\tests\" />
     <Folder Include="command_modules\azure-cli-network\azure\cli\command_modules\network\tests\zone_files\" />
@@ -895,6 +948,7 @@
     <Folder Include="command_modules\azure-cli-storage\azure\cli\" />
     <Folder Include="command_modules\azure-cli-storage\azure\cli\command_modules\" />
     <Folder Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\" />
+    <Folder Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\operations\" />
     <Folder Include="command_modules\azure-cli-storage\azure\cli\command_modules\storage\tests\" />
     <Folder Include="command_modules\azure-cli-vm\" />
     <Folder Include="command_modules\azure-cli-vm\azure\" />
@@ -923,6 +977,14 @@
     <Content Include="command_modules\azure-cli-acr\azure\cli\command_modules\acr\template_new_storage.json" />
     <Content Include="command_modules\azure-cli-acr\HISTORY.rst" />
     <Content Include="command_modules\azure-cli-acs\HISTORY.rst" />
+    <Content Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\tests\recordings\latest\test_generate_recommendations.yaml" />
+    <Content Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\tests\recordings\latest\test_get_set_configurations_resource_group.yaml" />
+    <Content Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\tests\recordings\latest\test_get_set_configurations_subscription.yaml" />
+    <Content Include="command_modules\azure-cli-advisor\azure\cli\command_modules\advisor\tests\recordings\latest\test_list_disable_enable_recommendations.yaml" />
+    <Content Include="command_modules\azure-cli-advisor\HISTORY.rst" />
+    <Content Include="command_modules\azure-cli-advisor\MANIFEST.in" />
+    <Content Include="command_modules\azure-cli-advisor\README.rst" />
+    <Content Include="command_modules\azure-cli-advisor\setup.cfg" />
     <Content Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\tests\sample_web\.gitignore" />
     <Content Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\tests\sample_web\package.json" />
     <Content Include="command_modules\azure-cli-appservice\azure\cli\command_modules\appservice\tests\sample_web\server.js" />
@@ -953,7 +1015,6 @@
     <Content Include="command_modules\azure-cli-batch\azure\cli\command_modules\batch\tests\data\batchtest.cer" />
     <Content Include="command_modules\azure-cli-batch\azure\cli\command_modules\batch\tests\data\batchUpdatePool.json" />
     <Content Include="command_modules\azure-cli-batch\azure\cli\command_modules\batch\tests\generate_full_cli_help.bat" />
-    <Content Include="command_modules\azure-cli-batch\azure\cli\command_modules\batch\tests\generate_short_cli_help.bat" />
     <Content Include="command_modules\azure-cli-batch\azure\cli\command_modules\batch\tests\README.md" />
     <Content Include="command_modules\azure-cli-batch\HISTORY.rst" />
     <Content Include="command_modules\azure-cli-cdn\HISTORY.rst" />
@@ -1011,7 +1072,7 @@
     <Content Include="command_modules\azure-cli-lab\azure\cli\command_modules\lab\tests\docdbenv_paramters.json" />
     <Content Include="command_modules\azure-cli-lab\azure\cli\command_modules\lab\tests\lab_template.json" />
     <Content Include="command_modules\azure-cli-lab\HISTORY.rst" />
-    <Content Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\autoscale-parameters-template.json" />
+    <Content Include="command_modules\azure-cli-monitor\azure\cli\command_modules\monitor\operations\autoscale-parameters-template.json" />
     <Content Include="command_modules\azure-cli-monitor\HISTORY.rst" />
     <Content Include="command_modules\azure-cli-network\azure\cli\command_modules\network\tests\zone_files\fail1.txt" />
     <Content Include="command_modules\azure-cli-network\azure\cli\command_modules\network\tests\zone_files\fail2.txt" />

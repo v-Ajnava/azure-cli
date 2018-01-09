@@ -4,7 +4,7 @@
 # --------------------------------------------------------------------------------------------
 from __future__ import print_function
 
-__version__ = "2.0.22"
+__version__ = "2.0.25"
 
 import os
 import sys
@@ -36,6 +36,7 @@ class AzCli(CLI):
         from azure.cli.core._session import ACCOUNT, CONFIG, SESSION
 
         import knack.events as events
+        from knack.util import ensure_dir
 
         self.data['headers'] = {}
         self.data['command'] = 'unknown'
@@ -44,6 +45,7 @@ class AzCli(CLI):
         self.data['query_active'] = False
 
         azure_folder = self.config.config_dir
+        ensure_dir(azure_folder)
         ACCOUNT.load(os.path.join(azure_folder, 'azureProfile.json'))
         CONFIG.load(os.path.join(azure_folder, 'az.json'))
         SESSION.load(os.path.join(azure_folder, 'az.sess'), max_age=3600)
@@ -52,8 +54,6 @@ class AzCli(CLI):
 
         register_extensions(self)
         self.register_event(events.EVENT_INVOKER_POST_CMD_TBL_CREATE, add_id_parameters)
-        # TODO: Doesn't work because args get copied
-        # self.register_event(events.EVENT_INVOKER_PRE_CMD_TBL_CREATE, _pre_command_table_create)
 
         self.progress_controller = None
 
@@ -78,6 +78,10 @@ class AzCli(CLI):
         from azure.cli.core.util import get_az_version_string
         print(get_az_version_string())
 
+    def exception_handler(self, ex):  # pylint: disable=no-self-use
+        from azure.cli.core.util import handle_exception
+        return handle_exception(ex)
+
 
 class MainCommandsLoader(CLICommandsLoader):
 
@@ -91,7 +95,7 @@ class MainCommandsLoader(CLICommandsLoader):
             loaders = self.cmd_to_loader_map[cmd_name]
             for loader in loaders:
                 loader.command_table = self.command_table
-                loader._update_command_definitions()
+                loader._update_command_definitions()  # pylint: disable=protected-access
 
     def load_command_table(self, args):
         from importlib import import_module
@@ -158,7 +162,7 @@ class MainCommandsLoader(CLICommandsLoader):
 
                         for cmd_name, cmd in extension_command_table.items():
                             cmd.command_source = ExtensionCommandSource(
-                                extension_name=ext_mod,
+                                extension_name=ext_name,
                                 overrides_command=cmd_name in cmd_to_mod_map)
 
                         self.command_table.update(extension_command_table)
@@ -198,7 +202,7 @@ class MainCommandsLoader(CLICommandsLoader):
                 loader.load_arguments(command)  # this adds entries to the argument registries
                 self.argument_registry.arguments.update(loader.argument_registry.arguments)
                 self.extra_argument_registry.update(loader.extra_argument_registry)
-                loader._update_command_definitions()
+                loader._update_command_definitions()  # pylint: disable=protected-access
 
 
 class AzCommandsLoader(CLICommandsLoader):
@@ -206,8 +210,7 @@ class AzCommandsLoader(CLICommandsLoader):
     def __init__(self, cli_ctx=None, min_profile=None, max_profile='latest',
                  command_group_cls=None, argument_context_cls=None,
                  **kwargs):
-        from azure.cli.core.commands import AzCliCommand
-        from azure.cli.core.sdk.util import _CommandGroup, _ParametersContext
+        from azure.cli.core.commands import AzCliCommand, AzCommandGroup, AzArgumentContext
 
         super(AzCommandsLoader, self).__init__(cli_ctx=cli_ctx,
                                                command_cls=AzCliCommand,
@@ -215,24 +218,24 @@ class AzCommandsLoader(CLICommandsLoader):
         self.min_profile = min_profile
         self.max_profile = max_profile
         self.module_kwargs = kwargs
-        self._command_group_cls = command_group_cls or _CommandGroup
-        self._argument_context_cls = argument_context_cls or _ParametersContext
+        self._command_group_cls = command_group_cls or AzCommandGroup
+        self._argument_context_cls = argument_context_cls or AzArgumentContext
 
     def _update_command_definitions(self):
         master_arg_registry = self.cli_ctx.invocation.commands_loader.argument_registry
         master_extra_arg_registry = self.cli_ctx.invocation.commands_loader.extra_argument_registry
+
         for command_name, command in self.command_table.items():
+            # Add any arguments explicitly registered for this command
+            for argument_name, argument_definition in master_extra_arg_registry[command_name].items():
+                command.arguments[argument_name] = argument_definition
+
             for argument_name in command.arguments:
                 overrides = master_arg_registry.get_cli_argument(command_name, argument_name)
                 command.update_argument(argument_name, overrides)
 
-            # Add any arguments explicitly registered for this command
-            for argument_name, argument_definition in master_extra_arg_registry[command_name].items():
-                command.arguments[argument_name] = argument_definition
-                command.update_argument(argument_name,
-                                        master_arg_registry.get_cli_argument(command_name, argument_name))
-
     def _apply_doc_string(self, dest, command_kwargs):
+        from azure.cli.core.profiles._shared import APIVersionException
         doc_string_source = command_kwargs.get('doc_string_source', None)
         if not doc_string_source:
             return
@@ -243,7 +246,7 @@ class AzCommandsLoader(CLICommandsLoader):
         model = doc_string_source
         try:
             model = self.get_models(doc_string_source)
-        except AttributeError:
+        except APIVersionException:
             model = None
         if not model:
             from importlib import import_module
@@ -285,21 +288,18 @@ class AzCommandsLoader(CLICommandsLoader):
                        *attr_args, **kwargs)
 
     def get_models(self, *attr_args, **kwargs):
-        resource_type = kwargs.get('resource_type', self._get_resource_type())
         from azure.cli.core.profiles import get_sdk
-        return get_sdk(self.cli_ctx, resource_type, *attr_args, mod='models')
+        resource_type = kwargs.get('resource_type', self._get_resource_type())
+        operation_group = kwargs.get('operation_group', self.module_kwargs.get('operation_group', None))
+        return get_sdk(self.cli_ctx, resource_type, *attr_args, mod='models', operation_group=operation_group)
 
     def command_group(self, group_name, command_type=None, **kwargs):
-        merged_kwargs = self.module_kwargs.copy()
         if command_type:
-            merged_kwargs['command_type'] = command_type
-        merged_kwargs.update(kwargs)
-        return self._command_group_cls(self, group_name, **merged_kwargs)
+            kwargs['command_type'] = command_type
+        return self._command_group_cls(self, group_name, **kwargs)
 
     def argument_context(self, scope, **kwargs):
-        merged_kwargs = self.module_kwargs.copy()
-        merged_kwargs.update(kwargs)
-        return self._argument_context_cls(self, scope, **merged_kwargs)
+        return self._argument_context_cls(self, scope, **kwargs)
 
     def _cli_command(self, name, operation=None, handler=None, argument_loader=None, description_loader=None, **kwargs):
 
@@ -312,9 +312,7 @@ class AzCommandsLoader(CLICommandsLoader):
 
         name = ' '.join(name.split())
 
-        command_type = kwargs.get('command_type', None)
-        client_factory = command_type.settings.get('client_factory', None) if command_type \
-            else kwargs.get('client_factory', None)
+        client_factory = kwargs.get('client_factory', None)
 
         def default_command_handler(command_args):
             from azure.cli.core.util import get_arg_list
@@ -323,7 +321,8 @@ class AzCommandsLoader(CLICommandsLoader):
 
             client = client_factory(self.cli_ctx, command_args) if client_factory else None
             if client:
-                client_arg_name = 'client' if operation.startswith('azure.cli') else 'self'
+                client_arg_name = kwargs.get('client_arg_name',
+                                             'client' if operation.startswith(('azure.cli', 'azext')) else 'self')
                 if client_arg_name in op_args:
                     command_args[client_arg_name] = client
             result = op(**command_args)
@@ -361,7 +360,13 @@ class AzCommandsLoader(CLICommandsLoader):
         from azure.cli.core.profiles._shared import get_versioned_sdk_path
 
         for rt in ResourceType:
-            if operation.startswith(rt.import_prefix):
+            if operation.startswith(rt.import_prefix + ".operations."):
+                subs = operation[len(rt.import_prefix + ".operations."):]
+                operation_group = subs[:subs.index('_operations')]
+                operation = operation.replace(
+                    rt.import_prefix,
+                    get_versioned_sdk_path(self.cli_ctx.cloud.profile, rt, operation_group=operation_group))
+            elif operation.startswith(rt.import_prefix):
                 operation = operation.replace(rt.import_prefix,
                                               get_versioned_sdk_path(self.cli_ctx.cloud.profile, rt))
 
@@ -375,3 +380,20 @@ class AzCommandsLoader(CLICommandsLoader):
             return six.get_method_function(op)
         except (ValueError, AttributeError):
             raise ValueError("The operation '{}' is invalid.".format(operation))
+
+
+def get_default_cli():
+    from azure.cli.core.azlogging import AzCliLogging
+    from azure.cli.core.commands import AzCliCommandInvoker
+    from azure.cli.core.parser import AzCliCommandParser
+    from azure.cli.core._config import GLOBAL_CONFIG_DIR, ENV_VAR_PREFIX
+    from azure.cli.core._help import AzCliHelp
+
+    return AzCli(cli_name='az',
+                 config_dir=GLOBAL_CONFIG_DIR,
+                 config_env_var_prefix=ENV_VAR_PREFIX,
+                 commands_loader_cls=MainCommandsLoader,
+                 invocation_cls=AzCliCommandInvoker,
+                 parser_cls=AzCliCommandParser,
+                 logging_cls=AzCliLogging,
+                 help_cls=AzCliHelp)

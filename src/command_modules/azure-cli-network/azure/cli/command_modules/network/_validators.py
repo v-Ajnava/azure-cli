@@ -8,14 +8,14 @@ import base64
 import socket
 import os
 
+from knack.util import CLIError
+
 from azure.cli.core.commands.validators import \
     (validate_tags, get_default_location_from_resource_group)
 from azure.cli.core.commands.template_create import get_folded_parameter_validator
 from azure.cli.core.commands.client_factory import get_subscription_id, get_mgmt_service_client
 from azure.cli.core.commands.validators import validate_parameter_set
 from azure.cli.core.profiles import ResourceType
-
-from knack.util import CLIError
 
 # PARAMETER VALIDATORS
 
@@ -77,6 +77,7 @@ def get_vnet_validator(dest):
     return _validate_vnet_name_or_id
 
 
+# pylint: disable=inconsistent-return-statements
 def dns_zone_name_type(value):
     if value:
         return value[:-1] if value[-1] == '.' else value
@@ -223,6 +224,17 @@ def validate_inbound_nat_rule_name_or_id(namespace):
             raise CLIError('Please specify --lb-name when specifying an inbound NAT rule name.')
         namespace.inbound_nat_rule = _generate_lb_subproperty_id(
             namespace, 'inboundNatRules', rule_name)
+
+
+def validate_ip_tags(cmd, namespace):
+    ''' Extracts multiple space-separated tags in TYPE=VALUE format '''
+    IpTag = cmd.get_models('IpTag')
+    if namespace.ip_tags and IpTag:
+        ip_tags = []
+        for item in namespace.ip_tags:
+            tag_type, tag_value = item.split('=', 1)
+            ip_tags.append(IpTag(ip_tag_type=tag_type, tag=tag_value))
+        namespace.ip_tags = ip_tags
 
 
 def validate_metadata(namespace):
@@ -585,10 +597,8 @@ def process_public_ip_create_namespace(cmd, namespace):
 
 
 def process_route_table_create_namespace(cmd, namespace):
-    RouteTable = namespace.cmd.get_models('RouteTable')
     get_default_location_from_resource_group(cmd, namespace)
     validate_tags(namespace)
-    namespace.parameters = RouteTable(location=namespace.location, tags=namespace.tags)
 
 
 def process_tm_endpoint_create_namespace(namespace):

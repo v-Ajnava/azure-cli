@@ -7,6 +7,8 @@ from __future__ import print_function
 from collections import Counter, OrderedDict
 import mock
 
+from knack.log import get_logger
+
 from msrestazure.azure_exceptions import CloudError
 from msrestazure.tools import parse_resource_id, is_valid_resource_id, resource_id
 
@@ -26,8 +28,6 @@ from azure.mgmt.dns.models import (RecordSet, AaaaRecord, ARecord, CaaRecord, Cn
 from azure.cli.command_modules.network.zone_file.parse_zone_file import parse_zone_file
 from azure.cli.command_modules.network.zone_file.make_zone_file import make_zone_file
 from azure.cli.core.profiles import ResourceType
-
-from knack.log import get_logger
 
 logger = get_logger(__name__)
 
@@ -964,7 +964,7 @@ def export_zone(cmd, resource_group_name, zone_name):
     print(make_zone_file(zone_obj))
 
 
-# pylint: disable=too-many-return-statements
+# pylint: disable=too-many-return-statements, inconsistent-return-statements
 def _build_record(data):
     record_type = data['type'].lower()
     try:
@@ -1614,6 +1614,8 @@ def create_lb_inbound_nat_pool(
     InboundNatPool = cmd.get_models('InboundNatPool')
     ncf = network_client_factory(cmd.cli_ctx)
     lb = ncf.load_balancers.get(resource_group_name, load_balancer_name)
+    if not frontend_ip_name:
+        frontend_ip_name = _get_default_name(lb, 'frontend_ip_configurations', '--frontend-ip-name')
     frontend_ip = _get_property(lb.frontend_ip_configurations, frontend_ip_name) \
         if frontend_ip_name else None
     new_pool = InboundNatPool(
@@ -2413,7 +2415,7 @@ def show_nw_troubleshooting_result(client, watcher_name, watcher_rg, resource, r
 # region PublicIPAddresses
 def create_public_ip(cmd, resource_group_name, public_ip_address_name, location=None, tags=None,
                      allocation_method=None, dns_name=None,
-                     idle_timeout=4, reverse_fqdn=None, version=None, sku=None, zone=None):
+                     idle_timeout=4, reverse_fqdn=None, version=None, sku=None, zone=None, ip_tags=None):
     IPAllocationMethod, PublicIPAddress, PublicIPAddressDnsSettings = cmd.get_models(
         'IPAllocationMethod', 'PublicIPAddress', 'PublicIPAddressDnsSettings')
     client = network_client_factory(cmd.cli_ctx).public_ip_addresses
@@ -2432,6 +2434,8 @@ def create_public_ip(cmd, resource_group_name, public_ip_address_name, location=
         public_ip_args['public_ip_address_version'] = version
     if cmd.supported_api_version(min_api='2017-06-01'):
         public_ip_args['zones'] = zone
+    if cmd.supported_api_version(min_api='2017-11-01'):
+        public_ip_args['ip_tags'] = ip_tags
     if sku:
         public_ip_args['sku'] = {'name': sku}
     public_ip = PublicIPAddress(**public_ip_args)
@@ -2444,7 +2448,7 @@ def create_public_ip(cmd, resource_group_name, public_ip_address_name, location=
 
 
 def update_public_ip(cmd, instance, dns_name=None, allocation_method=None, version=None,
-                     idle_timeout=None, reverse_fqdn=None, tags=None, sku=None):
+                     idle_timeout=None, reverse_fqdn=None, tags=None, sku=None, ip_tags=None):
     if dns_name is not None or reverse_fqdn is not None:
         if instance.dns_settings:
             if dns_name is not None:
@@ -2464,6 +2468,8 @@ def update_public_ip(cmd, instance, dns_name=None, allocation_method=None, versi
         instance.tags = tags
     if sku is not None:
         instance.sku.name = sku
+    if ip_tags:
+        instance.ip_tags = ip_tags
     return instance
 
 
@@ -2495,11 +2501,23 @@ def create_route_filter_rule(cmd, client, resource_group_name, route_filter_name
 
 
 # region RouteTables
-def update_route_table(instance, tags=None):
+def create_route_table(cmd, resource_group_name, route_table_name, location=None, tags=None,
+                       disable_bgp_route_propagation=None):
+    RouteTable = cmd.get_models('RouteTable')
+    ncf = network_client_factory(cmd.cli_ctx)
+    route_table = RouteTable(location=location, tags=tags)
+    if cmd.supported_api_version(min_api='2017-10-01'):
+        route_table.disable_bgp_route_propagation = disable_bgp_route_propagation
+    return ncf.route_tables.create_or_update(resource_group_name, route_table_name, route_table)
+
+
+def update_route_table(instance, tags=None, disable_bgp_route_propagation=None):
     if tags == '':
         instance.tags = None
     elif tags is not None:
         instance.tags = tags
+    if disable_bgp_route_propagation is not None:
+        instance.disable_bgp_route_propagation = disable_bgp_route_propagation
     return instance
 
 
@@ -2725,7 +2743,7 @@ def update_subnet(cmd, instance, resource_group_name, address_prefix=None, netwo
     :param str network_security_group: attach with existing network security group,
         both name or id are accepted. Use empty string "" to detach it.
     '''
-    NetworkSecurityGroup, ServiceEndpoint = cmd.get_models('NetworkSecurityGroup', 'ServiceEndpoint')
+    NetworkSecurityGroup, ServiceEndpoint = cmd.get_models('NetworkSecurityGroup', 'ServiceEndpointPropertiesFormat')
 
     if address_prefix:
         instance.address_prefix = address_prefix
@@ -2982,7 +3000,7 @@ def _poll(self, update_cmd):
                 self._response)
         else:
             raise BadResponse(
-                'Location header is missing from long running operation.')
+                'Location header is missing from long-running operation.')
 
     if failed(self._operation.status):
         raise OperationFailed("Operation failed or cancelled")
@@ -3121,7 +3139,7 @@ def create_vpn_connection(cmd, resource_group_name, connection_name, vnet_gatewa
         using an 'ExpressRoute' connection.
     :param str authorization_key: The authorization key for the VPN connection.
     :param bool enable_bgp: Enable BGP for this VPN connection.
-    :param bool no_wait: Do not wait for the long running operation to finish.
+    :param bool no_wait: Do not wait for the long-running operation to finish.
     :param bool validate: Display and validate the ARM template but do not create any resources.
     """
     from azure.cli.core.util import random_string
@@ -3210,4 +3228,25 @@ def add_vpn_conn_ipsec_policy(cmd, resource_group_name, connection_name,
                              pfs_group=pfs_group)
     if conn.ipsec_policies:
         conn.ipsec_policies.append(new_policy)
+    else:
+        conn.ipsec_policies = [new_policy]
+    return ncf.create_or_update(resource_group_name, connection_name, conn, raw=no_wait)
+
+
+def clear_vpn_conn_ipsec_policies(cmd, resource_group_name, connection_name, no_wait=False):
+    ncf = network_client_factory(cmd.cli_ctx).virtual_network_gateway_connections
+    conn = ncf.get(resource_group_name, connection_name)
+    conn.ipsec_policies = None
+    conn.use_policy_based_traffic_selectors = False
+    if no_wait:
+        return ncf.create_or_update(resource_group_name, connection_name, conn, raw=no_wait)
+
+    from azure.cli.core.commands import LongRunningOperation
+    poller = ncf.create_or_update(resource_group_name, connection_name, conn, raw=no_wait)
+    return LongRunningOperation(cmd.cli_ctx)(poller).ipsec_policies
+
+
+def list_vpn_conn_ipsec_policies(cmd, resource_group_name, connection_name):
+    ncf = network_client_factory(cmd.cli_ctx).virtual_network_gateway_connections
+    return ncf.get(resource_group_name, connection_name).ipsec_policies
 # endregion

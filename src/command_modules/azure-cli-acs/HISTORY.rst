@@ -3,6 +3,19 @@
 Release History
 ===============
 
+2.0.23
+++++++
+* Update for CLI core changes.
+
+2.0.22
+++++++
+* add korea south and korea central to preview regions
+* use new flattened managed cluster representation which removes separate "properties" object
+
+2.0.21
+++++++
+* add `az aks install-connector` and `az aks remove-connector` commands
+
 2.0.20
 ++++++
 * `acs create`: emit out an actionable error if provisioning application failed for lack of permissions

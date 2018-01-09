@@ -6,6 +6,8 @@
 # pylint: disable=line-too-long
 from argcomplete.completers import FilesCompleter
 
+from knack.arguments import CLIArgumentType
+
 from azure.mgmt.compute.models import CachingTypes, UpgradeMode
 from azure.mgmt.storage.models import SkuName
 
@@ -20,8 +22,6 @@ from azure.cli.command_modules.vm._completers import (
     get_urn_aliases_completion_list, get_vm_size_completion_list, get_vm_run_command_completion_list)
 from azure.cli.command_modules.vm._validators import (
     validate_nsg_name, validate_vm_nics, validate_vm_nic, validate_vm_disk, validate_asg_names_or_ids)
-
-from knack.arguments import CLIArgumentType
 
 
 # REUSABLE ARGUMENT DEFINITIONS
@@ -75,6 +75,15 @@ def load_arguments(self, _):
         c.argument('disk_name', existing_disk_name, completer=get_resource_name_completion_list('Microsoft.Compute/disks'))
         c.argument('name', arg_type=name_arg_type)
         c.argument('sku', arg_type=disk_sku)
+    # endregion
+
+    # region Identity
+    # TODO move to its own command module https://github.com/Azure/azure-cli/issues/5105
+    with self.argument_context('identity') as c:
+        c.argument('resource_name', arg_type=name_arg_type, id_part='name')
+
+    with self.argument_context('identity create') as c:
+        c.argument('location', get_location_type(self.cli_ctx))
     # endregion
 
     # region Snapshots
@@ -190,7 +199,7 @@ def load_arguments(self, _):
     with self.argument_context('vm nic') as c:
         c.argument('vm_name', existing_vm_name, options_list=['--vm-name'], id_part=None)
         c.argument('nics', nargs='+', help='Names or IDs of NICs.', validator=validate_vm_nics)
-        c. argument('primary_nic', help='Name or ID of the primary NIC. If missing, the first NIC in the list will be the primary.')
+        c.argument('primary_nic', help='Name or ID of the primary NIC. If missing, the first NIC in the list will be the primary.')
 
     with self.argument_context('vm nic show') as c:
         c.argument('nic', help='NIC name or ID.', validator=validate_vm_nic)
@@ -303,7 +312,14 @@ def load_arguments(self, _):
 
     for scope in ['vm assign-identity', 'vmss assign-identity']:
         with self.argument_context(scope) as c:
+            c.argument('assign_identity', options_list=['--identities'], nargs='*', help="the identities to assign")
             c.argument('port', type=int, help="The port to fetch AAD token. Default: 50342")
+            c.argument('vm_name', existing_vm_name)
+            c.argument('vmss_name', vmss_name_type)
+
+    for scope in ['vm remove-identity', 'vmss remove-identity']:
+        with self.argument_context(scope) as c:
+            c.argument('identities', nargs='+', help="space separated user assigned identities to remove")
             c.argument('vm_name', existing_vm_name)
             c.argument('vmss_name', vmss_name_type)
 
@@ -311,14 +327,14 @@ def load_arguments(self, _):
         with self.argument_context(scope) as c:
             c.argument('location', get_location_type(self.cli_ctx), help='Location in which to create VM and related resources. If default location is not configured, will default to the resource group\'s location')
             c.argument('tags', tags_type)
-            c.argument('no_wait', help='Do not wait for the long running operation to finish.')
+            c.argument('no_wait', help='Do not wait for the long-running operation to finish.')
             c.argument('validate', options_list=['--validate'], help='Generate and validate the ARM template without creating any resources.', action='store_true')
             c.argument('size', help='The VM size to be created. See https://azure.microsoft.com/en-us/pricing/details/virtual-machines/ for size info.')
             c.argument('image', completer=get_urn_aliases_completion_list)
             c.argument('custom_data', help='Custom init script file or text (cloud-init, cloud-config, etc..)', completer=FilesCompleter(), type=file_type)
             c.argument('secrets', multi_ids_type, help='One or many Key Vault secrets as JSON strings or files via `@<file path>` containing `[{ "sourceVault": { "id": "value" }, "vaultCertificates": [{ "certificateUrl": "value", "certificateStore": "cert store name (only on windows)"}] }]`', type=file_type, completer=FilesCompleter())
             c.argument('license_type', help="license type if the Windows image or disk used was licensed on-premises", arg_type=get_enum_type(['Windows_Server', 'Windows_Client']))
-            c.argument('assign_identity', action='store_true', help='enables the VM/VMSS to autonomously, using its own managed identity, to directly authenticate and interact with other Azure services using bearer tokens', arg_group='Managed Service Identity')
+            c.argument('assign_identity', nargs='*', arg_group='Managed Service Identity', help="accept system or user assigned identities with space separated. Use '[system]' to refer system assigned identity, or a resource id to refer user assigned identity. Check out help for more examples")
 
         with self.argument_context(scope, arg_group='Authentication') as c:
             c.argument('generate_ssh_keys', action='store_true', help='Generate SSH public and private key files if missing. The keys will be stored in the ~/.ssh directory')
@@ -361,8 +377,8 @@ def load_arguments(self, _):
     for scope in ['vm create', 'vmss create', 'vm assign-identity', 'vmss assign-identity']:
         with self.argument_context(scope) as c:
             arg_group = 'Managed Service Identity' if scope.split()[-1] == 'create' else None
-            c.argument('identity_scope', options_list='--scope', arg_group=arg_group, help="The scope the managed identity has access to")
-            c.argument('identity_role', options_list='--role', arg_group=arg_group, help="Role name or id the managed identity will be assigned")
+            c.argument('identity_scope', options_list=['--scope'], arg_group=arg_group, help="Scope that the system assigned identity can access")
+            c.argument('identity_role', options_list=['--role'], arg_group=arg_group, help="Role name or id the system assigned identity will have")
             c.ignore('identity_role_id')
 
     for scope in ['vm diagnostics', 'vmss diagnostics']:

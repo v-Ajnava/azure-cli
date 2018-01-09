@@ -7,7 +7,7 @@
 
 from azure.cli.core.commands import DeploymentOutputLongRunningOperation
 from azure.cli.core.commands.arm import deployment_validate_table_format
-from azure.cli.core.sdk.util import CliCommandType
+from azure.cli.core.commands import CliCommandType
 from azure.cli.core.util import empty_on_404
 
 from azure.cli.command_modules.network._client_factory import (
@@ -248,10 +248,9 @@ def load_command_table(self, _):
             g.command('show', get_network_resource_property_entry('application_gateways', subresource), exception_handler=empty_on_404)
             g.command('delete', delete_network_resource_property_entry('application_gateways', subresource), no_wait_param='no_wait')
             g.custom_command('create', 'create_ag_{}'.format(_make_singular(subresource)), no_wait_param='no_wait', validator=create_validator)
-            g.generic_update_command('update', operations_tmpl=network_ag_sdk.settings['operations_tmpl'],
-                                     client_factory=cf_application_gateways, no_wait_param='raw',
+            g.generic_update_command('update', command_type=network_ag_sdk, no_wait_param='raw',
                                      custom_func_name='update_ag_{}'.format(_make_singular(subresource)),
-                                     child_collection_prop_name=subresource)
+                                     child_collection_prop_name=subresource, validator=create_validator)
 
     with self.command_group('network application-gateway redirect-config', network_util, min_api='2017-06-01') as g:
         subresource = 'redirect_configurations'
@@ -259,7 +258,7 @@ def load_command_table(self, _):
         g.command('show', get_network_resource_property_entry('application_gateways', subresource), exception_handler=empty_on_404)
         g.command('delete', delete_network_resource_property_entry('application_gateways', subresource), no_wait_param='no_wait')
         g.custom_command('create', 'create_ag_{}'.format(_make_singular(subresource)), no_wait_param='no_wait', doc_string_source='ApplicationGatewayRedirectConfiguration')
-        g.generic_update_command('update', operations_tmpl=network_ag_sdk.settings['operations_tmpl'],
+        g.generic_update_command('update', command_type=network_ag_sdk,
                                  client_factory=cf_application_gateways, no_wait_param='raw',
                                  custom_func_name='update_ag_{}'.format(_make_singular(subresource)),
                                  child_collection_prop_name=subresource, doc_string_source='ApplicationGatewayRedirectConfiguration')
@@ -541,7 +540,7 @@ def load_command_table(self, _):
 
     # region RouteTables
     with self.command_group('network route-table', network_rt_sdk) as g:
-        g.command('create', 'create_or_update', validator=process_route_table_create_namespace)
+        g.custom_command('create', 'create_route_table', validator=process_route_table_create_namespace)
         g.command('delete', 'delete')
         g.command('show', 'get', exception_handler=empty_on_404)
         g.custom_command('list', 'list_route_tables')

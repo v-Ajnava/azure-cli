@@ -12,6 +12,9 @@ import uuid
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
 
+from knack.log import get_logger
+from knack.util import CLIError, todict
+
 from azure.cli.core.util import get_file_json, shell_safe_json_parse
 
 from azure.mgmt.authorization.models import (RoleAssignmentProperties, Permission, RoleDefinition,
@@ -24,9 +27,6 @@ from azure.graphrbac.models import (ApplicationCreateParameters,
                                     UserCreateParameters,
                                     PasswordProfile,
                                     ServicePrincipalCreateParameters)
-
-from knack.log import get_logger
-from knack.util import CLIError, todict
 
 from ._client_factory import _auth_client_factory, _graph_client_factory
 
@@ -621,6 +621,7 @@ def _validate_app_dates(app_start_date, app_end_date, cert_start_date, cert_end_
     return (app_start_date, app_end_date, cert_start_date, cert_end_date)
 
 
+# pylint: disable=inconsistent-return-statements
 def create_service_principal_for_rbac(
         # pylint:disable=too-many-statements,too-many-locals, too-many-branches
         cmd, name=None, password=None, years=None,
@@ -716,7 +717,7 @@ def create_service_principal_for_rbac(
     if show_auth_for_sdk:
         import json
         from azure.cli.core._profile import Profile
-        profile = Profile(cmd.cli_ctx)
+        profile = Profile(cli_ctx=cmd.cli_ctx)
         result = profile.get_sp_auth_info(scopes[0].split('/')[2] if scopes else None,
                                           app_id, password, cert_file)
         # sdk-auth file should be in json format all the time, hence the print
@@ -743,7 +744,7 @@ def _get_keyvault_client(cli_ctx):
     from azure.keyvault import KeyVaultClient, KeyVaultAuthentication
 
     def _get_token(server, resource, scope):  # pylint: disable=unused-argument
-        return Profile(cli_ctx).get_login_credentials(resource)[0]._token_retriever()  # pylint: disable=protected-access
+        return Profile(cli_ctx=cli_ctx).get_login_credentials(resource)[0]._token_retriever()  # pylint: disable=protected-access
 
     return KeyVaultClient(KeyVaultAuthentication(_get_token))
 

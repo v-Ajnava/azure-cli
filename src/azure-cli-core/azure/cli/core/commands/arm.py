@@ -7,17 +7,17 @@ import argparse
 import re
 from six import string_types
 
+from knack.arguments import CLICommandArgument, ignore_type
+from knack.introspection import extract_args_from_signature
+from knack.log import get_logger
+from knack.util import todict, CLIError
+
 from azure.cli.core import AzCommandsLoader, EXCLUDED_PARAMS
 from azure.cli.core.commands import LongRunningOperation, _is_poller
 from azure.cli.core.commands.client_factory import get_mgmt_service_client
 from azure.cli.core.commands.validators import IterateValue
 from azure.cli.core.util import shell_safe_json_parse
 from azure.cli.core.profiles import ResourceType
-
-from knack.arguments import CLICommandArgument, ignore_type
-from knack.introspection import extract_args_from_signature
-from knack.log import get_logger
-from knack.util import todict, CLIError
 
 logger = get_logger(__name__)
 
@@ -211,7 +211,10 @@ def _get_operations_tmpl(cmd):
 
 
 def _get_client_factory(_, kwargs):
-    factory = kwargs.get('client_factory', kwargs.get('command_type').settings.get('client_factory', None))
+    command_type = kwargs.get('command_type', None)
+    factory = kwargs.get('client_factory', None)
+    if not factory and command_type:
+        factory = command_type.settings.get('client_factory', None)
     return factory
 
 
@@ -285,6 +288,24 @@ def _cli_generic_update_command(context, name, getter_op, setter_op, setter_arg_
         arguments['cmd'] = CLICommandArgument('cmd', arg_type=ignore_type)
         return [(k, v) for k, v in arguments.items()]
 
+    def _extract_handler_and_args(args, commmand_kwargs, op):
+        factory = _get_client_factory(name, commmand_kwargs)
+        client = None
+        if factory:
+            try:
+                client = factory(context.cli_ctx)
+            except TypeError:
+                client = factory(context.cli_ctx, None)
+
+        client_arg_name = 'client' if op.startswith(('azure.cli', 'azext')) else 'self'
+        op_handler = context.get_op_handler(op)
+        exclude = list(set(EXCLUDED_PARAMS) - set(['self', 'client']))
+        raw_args = dict(extract_args_from_signature(op_handler, excluded_params=exclude))
+        op_args = {key: val for key, val in args.items() if key in raw_args}
+        if client_arg_name in raw_args:
+            op_args[client_arg_name] = client
+        return op_handler, op_args
+
     def handler(args):  # pylint: disable=too-many-branches,too-many-statements
         cmd = args.get('cmd')
         ordered_arguments = args.pop('ordered_arguments', [])
@@ -293,20 +314,7 @@ def _cli_generic_update_command(context, name, getter_op, setter_op, setter_arg_
                 raise CLIError("Unexpected '{}' was not empty.".format(item))
             del args[item]
 
-        factory = _get_client_factory(name, cmd.command_kwargs)
-        client = None
-        if factory:
-            try:
-                client = factory(context.cli_ctx)
-            except TypeError:
-                client = factory(context.cli_ctx, None)
-
-        operations_tmpl = _get_operations_tmpl(cmd)
-        client_arg_name = 'client' if operations_tmpl.startswith('azure.cli') else 'self'
-        getterargs = {key: val for key, val in args.items() if key in get_arguments_loader()}
-        if client_arg_name in getterargs or client_arg_name == 'self':
-            getterargs[client_arg_name] = client
-        getter = context.get_op_handler(getter_op)
+        getter, getterargs = _extract_handler_and_args(args, cmd.command_kwargs, getter_op)
         if child_collection_prop_name:
             parent = getter(**getterargs)
             instance = _get_child(
@@ -321,18 +329,14 @@ def _cli_generic_update_command(context, name, getter_op, setter_op, setter_arg_
 
         # pass instance to the custom_function, if provided
         if custom_function_op:
-            custom_function = context.get_op_handler(custom_function_op)
-            custom_func_args = \
-                {k: v for k, v in args.items() if k in function_arguments_loader()}
+            custom_function, custom_func_args = _extract_handler_and_args(args, cmd.command_kwargs, custom_function_op)
             if child_collection_prop_name:
                 parent = custom_function(instance=instance, parent=parent, **custom_func_args)
             else:
                 instance = custom_function(instance=instance, **custom_func_args)
 
         # apply generic updates after custom updates
-        setterargs = {key: val for key, val in args.items() if key in set_arguments_loader()}
-        if client_arg_name in setterargs or client_arg_name == 'self':
-            setterargs[client_arg_name] = client
+        setter, setterargs = _extract_handler_and_args(args, cmd.command_kwargs, setter_op)
 
         for arg in ordered_arguments:
             arg_type, arg_values = arg
@@ -355,11 +359,11 @@ def _cli_generic_update_command(context, name, getter_op, setter_op, setter_arg_
 
         # Done... update the instance!
         setterargs[setter_arg_name] = parent if child_collection_prop_name else instance
-        setter = context.get_op_handler(setter_op)
-
+        no_wait_param = cmd.command_kwargs.get('no_wait_param', None)
+        if no_wait_param:
+            setterargs[no_wait_param] = args[no_wait_param]
         result = setter(**setterargs)
 
-        no_wait_param = cmd.command_kwargs.get('no_wait_param', None)
         if no_wait_param and setterargs.get(no_wait_param, None):
             return None
 
@@ -403,19 +407,19 @@ def _cli_generic_wait_command(context, name, getter_op, **kwargs):
         )
         cmd_args['deleted'] = CLICommandArgument(
             'deleted', options_list=['--deleted'], action='store_true', arg_group=group_name,
-            help='wait till deleted'
+            help='wait until deleted'
         )
         cmd_args['created'] = CLICommandArgument(
             'created', options_list=['--created'], action='store_true', arg_group=group_name,
-            help="wait till created with 'provisioningState' at 'Succeeded'"
+            help="wait until created with 'provisioningState' at 'Succeeded'"
         )
         cmd_args['updated'] = CLICommandArgument(
             'updated', options_list=['--updated'], action='store_true', arg_group=group_name,
-            help="wait till updated with provisioningState at 'Succeeded'"
+            help="wait until updated with provisioningState at 'Succeeded'"
         )
         cmd_args['exists'] = CLICommandArgument(
             'exists', options_list=['--exists'], action='store_true', arg_group=group_name,
-            help="wait till the resource exists"
+            help="wait until the resource exists"
         )
         cmd_args['custom'] = CLICommandArgument(
             'custom', options_list=['--custom'], arg_group=group_name,
@@ -442,12 +446,15 @@ def _cli_generic_wait_command(context, name, getter_op, **kwargs):
         cmd = args.get('cmd')
 
         operations_tmpl = _get_operations_tmpl(cmd)
-        client_arg_name = 'client' if operations_tmpl.startswith('azure.cli') else 'self'
+        getter_args = dict(extract_args_from_signature(context.get_op_handler(getter_op),
+                                                       excluded_params=EXCLUDED_PARAMS))
+
+        client_arg_name = 'client' if operations_tmpl.startswith(('azure.cli', 'azext')) else 'self'
         try:
             client = factory(context.cli_ctx) if factory else None
         except TypeError:
             client = factory(context.cli_ctx, None) if factory else None
-        if client:
+        if client and (client_arg_name in getter_args or client_arg_name == 'self'):
             args[client_arg_name] = client
 
         getter = context.get_op_handler(getter_op)
@@ -468,20 +475,20 @@ def _cli_generic_wait_command(context, name, getter_op, **kwargs):
             try:
                 instance = getter(**args)
                 if wait_for_exists:
-                    return
+                    return None
                 provisioning_state = get_provisioning_state(instance)
                 # until we have any needs to wait for 'Failed', let us bail out on this
                 if provisioning_state == 'Failed':
                     raise CLIError('The operation failed')
                 if wait_for_created or wait_for_updated:
                     if provisioning_state == 'Succeeded':
-                        return
+                        return None
                 if custom_condition and bool(verify_property(instance, custom_condition)):
-                    return
+                    return None
             except ClientException as ex:
                 if getattr(ex, 'status_code', None) == 404:
                     if wait_for_deleted:
-                        return
+                        return None
                     if not any([wait_for_created, wait_for_exists, custom_condition]):
                         raise
                 else:
@@ -752,7 +759,7 @@ def _find_property(instance, path):
     return instance
 
 
-def assign_implict_identity(cli_ctx, getter, setter, identity_role=None, identity_scope=None):
+def assign_identity(cli_ctx, getter, setter, identity_role=None, identity_scope=None):
     import time
     from azure.mgmt.authorization import AuthorizationManagementClient
     from azure.mgmt.authorization.models import RoleAssignmentProperties
@@ -760,10 +767,7 @@ def assign_implict_identity(cli_ctx, getter, setter, identity_role=None, identit
 
     # get
     resource = getter()
-    if resource.identity:
-        logger.warning('Implict identity is already configured')
-    else:
-        resource = setter(resource)
+    resource = setter(resource)
 
     # create role assignment:
     if identity_scope:

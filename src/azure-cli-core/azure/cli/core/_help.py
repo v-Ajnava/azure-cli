@@ -5,15 +5,14 @@
 
 from __future__ import print_function
 
-from azure.cli.core.commands import ExtensionCommandSource
-
 from knack.help import (HelpExample,
                         HelpFile as KnackHelpFile,
                         CLIHelp,
                         HelpParameter,
                         ArgumentGroupRegistry as KnackArgumentGroupRegistry)
-
 from knack.log import get_logger
+
+from azure.cli.core.commands import ExtensionCommandSource
 
 logger = get_logger(__name__)
 
@@ -32,11 +31,11 @@ You can change your telemetry settings with `az configure`.
 """
 
 WELCOME_MESSAGE = r"""
-    /\\
-   /  \\    _____   _ _ __ ___
-  / /\ \\  |_  / | | | \'__/ _ \\
- / ____ \\  / /| |_| | | |  __/
-/_/    \_\\/___|\__,_|_|  \___|
+     /\
+    /  \    _____   _ _  ___ _
+   / /\ \  |_  / | | | \'__/ _\
+  / ____ \  / /| |_| | | |  __/
+ /_/    \_\/___|\__,_|_|  \___|
 
 
 Welcome to the cool new Azure CLI!
