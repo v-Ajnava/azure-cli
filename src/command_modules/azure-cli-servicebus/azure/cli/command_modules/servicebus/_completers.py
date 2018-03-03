@@ -14,7 +14,7 @@ def get_queue_command_completion_list(cmd, prefix, namespace):
     from ._client_factory import queues_mgmt_client_factory
     resource_group_name = namespace.resource_group_name
     namespace_name = namespace.namespace_name
-    result = queues_mgmt_client_factory(cmd.cli_ctx).list_by_namespace(resource_group_name, namespace_name)
+    result = list(queues_mgmt_client_factory(cmd.cli_ctx).list_by_namespace(resource_group_name, namespace_name))
     return [r.name for r in result]
 
 
