@@ -90,3 +90,19 @@ def load_command_table(self, _):
         g.command('list', 'list_authorization_rules')
         g.show_command('show', 'get_authorization_rule')
         g.command('keys list', 'list_keys')
+
+# NetwrokRuleSet Region
+    with self.command_group('eventhubs namespace netwrokruleset', eh_namespace_util, client_factory=namespaces_mgmt_client_factory) as g:
+        g.command('update', 'create_or_update_network_rule_set')
+        g.show_command('show', 'get_network_rule_set')
+        g.command('delete', 'create_or_update_network_rule_set')
+
+    with self.command_group('eventhubs namespace netwrokruleset virtualnetworkrule', eh_namespace_util, client_factory=namespaces_mgmt_client_factory) as g:
+        g.custom_command('add', 'cli_virtualnetwrokrule_add')
+        g.custom_command('list', 'cli_virtualnetwrokrule_list')
+        g.custom_command('delete', 'cli_virtualnetwrokrule_delete')
+
+    with self.command_group('eventhubs namespace netwrokruleset iprule', eh_namespace_util, client_factory=namespaces_mgmt_client_factory) as g:
+        g.custom_command('add', 'cli_iprule_add')
+        g.custom_command('list', 'cli_iprule_list')
+        g.custom_command('delete', 'cli_iprule_delete')

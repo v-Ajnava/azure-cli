@@ -3,6 +3,12 @@
 Release History
 ===============
 
+0.4.0
++++++
+* added new commands for netwrokruleset
+* eventhubs namespace networkruleset virtualnetworkrule
+* eventhubs namespace networkruleset iprule
+
 0.3.4
 +++++
 * eventhubs eventhub create/update: Added --skip-empty-archives flag to support empty archives in capture.

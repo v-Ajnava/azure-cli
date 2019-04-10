@@ -12,7 +12,7 @@ from azure.cli.core.commands.validators import get_default_location_from_resourc
 # pylint: disable=line-too-long
 def load_arguments_eh(self, _):
     from knack.arguments import CLIArgumentType
-    from azure.mgmt.eventhub.models import KeyType, AccessRights, SkuName
+    from azure.mgmt.eventhub.models import KeyType, AccessRights, SkuName, NWRuleSetVirtualNetworkRules, NWRuleSetIpRules
     from azure.cli.command_modules.eventhubs._completers import get_consumergroup_command_completion_list, get_eventhubs_command_completion_list
     from azure.cli.command_modules.eventhubs._validator import validate_storageaccount, validate_partner_namespace
 
@@ -22,9 +22,10 @@ def load_arguments_eh(self, _):
     event_hub_name_arg_type = CLIArgumentType(options_list=['--eventhub-name'], help='Name of EventHub')
     namespace_name_arg_type = CLIArgumentType(options_list=['--namespace-name'], help='Name of Namespace', id_part='name')
 
-    with self.argument_context('eventhubs') as c:
-        c.argument('resource_group_name', arg_type=resource_group_name_type)
-        c.argument('namespace_name', id_part='name', help='name of Namespace')
+    for scope in ['eventhubs', 'eventhubs namespace networkruleset show', 'eventhubs namespace networkruleset delete']:
+        with self.argument_context('eventhubs') as c:
+            c.argument('resource_group_name', arg_type=resource_group_name_type)
+            c.argument('namespace_name', id_part='name', help='name of Namespace')
 
     with self.argument_context('eventhubs namespace exists') as c:
         c.argument('namespace_name', arg_type=name_type, help='Namespace name. Name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.')
@@ -48,6 +49,28 @@ def load_arguments_eh(self, _):
         c.argument('capacity', type=int, help='Capacity for Sku')
         c.argument('is_auto_inflate_enabled', options_list=['--enable-auto-inflate'], arg_type=get_three_state_flag(), help='A boolean value that indicates whether AutoInflate is enabled for eventhub namespace.')
         c.argument('maximum_throughput_units', type=int, help='Upper limit of throughput units when AutoInflate is enabled, vaule should be within 0 to 20 throughput units. ( 0 if AutoInflateEnabled = true)')
+
+    # Region Namespace NetworkRuleSet
+    with self.argument_context('eventhubs namespace networkruleset update') as c:
+        c.argument('default_action', arg_type=get_enum_type(['Allow', 'Deny']), help='Default Action for Network Rule Set. Possible values include: Allow, Deny')
+        c.argument('virtual_network_rules', arg_type=[NWRuleSetVirtualNetworkRules], help='List VirtualNetwork Rules')
+        c.argument('ip_rules', arg_type=[NWRuleSetIpRules], help='List of IpRules')
+
+    for scope in ['eventhubs namespace networkruleset virtualnetworkrule add', 'eventhubs namespace networkruleset virtualnetworkrule delete']:
+        with self.argument_context(scope) as c:
+            c.argument('subnet', help='Resource ID of Virtual Network Subnet')
+
+    with self.argument_context('eventhubs namespace networkruleset virtualnetworkrule add') as c:
+        c.argument('ignore_missing_vnet_service_endpoint', arg_type=get_three_state_flag(),
+                   help='A boolean value that indicates whether to ignore missing VNet Service Endpoint')
+
+    for scope in ['eventhubs namespace networkruleset iprule add', 'eventhubs namespace networkruleset iprule delete']:
+        with self.argument_context('') as c:
+            c.argument('ip_mask', help='IP Mask')
+
+    with self.argument_context('eventhubs namespace networkruleset iprule add') as c:
+        c.argument('action', arg_type=get_enum_type(['Allow']),
+                   help='The IP Filter Action. Possible values include: Allow')
 
     # region Namespace Authorizationrule
     with self.argument_context('eventhubs namespace authorization-rule list') as c:
