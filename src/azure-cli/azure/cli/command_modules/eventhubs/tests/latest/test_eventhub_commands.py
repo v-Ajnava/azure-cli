@@ -40,7 +40,7 @@ class EHNamespaceCURDScenarioTest(ScenarioTest):
             'maximumthroughputunits_update': 5
         })
 
-        # Check for the NameSpace name Availability
+        # Check for the NameSpace name Availability - Test
 
         self.cmd('eventhubs namespace exists --name {namespacename}',
                  checks=[self.check('nameAvailable', True)])
@@ -49,7 +49,7 @@ class EHNamespaceCURDScenarioTest(ScenarioTest):
         self.cmd('eventhubs namespace create --resource-group {rg} --name {namespacenamekafka} --location {loc} --tags {tags} --sku {sku} --enable-auto-inflate {isautoinflateenabled} --maximum-throughput-units {maximumthroughputunits} --enable-kafka {isautoinflateenabled}',
                  checks=[self.check('kafkaEnabled', True)])
 
-        # Create Namespace
+        # Create Namespace - Test
         self.cmd(
             'eventhubs namespace create --resource-group {rg} --name {namespacename} --location {loc} --tags {tags} --sku {sku} --enable-auto-inflate {isautoinflateenabled} --maximum-throughput-units {maximumthroughputunits}',
             checks=[self.check('sku.name', self.kwargs['sku'])])
