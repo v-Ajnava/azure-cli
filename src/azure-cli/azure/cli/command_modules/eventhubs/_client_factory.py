@@ -10,8 +10,14 @@ def cf_eventhub(cli_ctx, **_):
     return get_mgmt_service_client(cli_ctx, ResourceType.MGMT_EVENTHUB)
 
 
+def cf_eventhub2018(cli_ctx, **_):
+    from azure.cli.core.commands.client_factory import get_mgmt_service_client
+    from azure.cli.core.profiles import ResourceType
+    return get_mgmt_service_client(cli_ctx, ('azure.mgmt.eventhub', 'EventHub2018PreviewManagementClient'))
+
+
 def namespaces_mgmt_client_factory(cli_ctx, _):
-    return cf_eventhub(cli_ctx).namespaces
+    return cf_eventhub2018(cli_ctx).namespaces
 
 
 def event_hub_mgmt_client_factory(cli_ctx, _):
